@@ -1,0 +1,22 @@
+# Python environments and caches
+.venv/
+.uv-cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.pytest-*/
+.test-temp-*/
+
+# Local configuration and runtime data
+.env
+instance/
+*.db
+*.sqlite
+*.sqlite3
+*.pdf
+
+# Editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

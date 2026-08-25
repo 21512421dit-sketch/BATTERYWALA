@@ -1,0 +1,155 @@
+/* Client-requested BatteryWala refinements. Loaded after the prototype styles. */
+.header.bw-updated-header,
+.header.bw-updated-header.isCompact,
+.header.bw-updated-header.isScrolled {
+  height: 116px !important;
+  min-height: 116px !important;
+  contain: none !important;
+  overflow: visible !important;
+}
+
+.header.bw-updated-header .wrap {
+  height: 116px !important;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+}
+
+.header.bw-updated-header .logoImage {
+  width: 145px !important;
+  height: 106px !important;
+  min-width: 145px;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  overflow: visible !important;
+}
+
+.header.bw-updated-header .logoImage img {
+  width: 145px !important;
+  height: auto !important;
+  max-height: 106px !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  transform: none !important;
+  rotate: none !important;
+}
+
+.header.bw-updated-header .headerLogoTagline { display: none !important; }
+
+.bw-header-right {
+  min-width: 0;
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  align-items: center;
+  justify-content: flex-end;
+  column-gap: 24px;
+}
+
+.bw-header-message {
+  flex: 0 0 100%;
+  margin: 0 0 7px;
+  color: #081565;
+  font-size: clamp(15px, 1.45vw, 20px);
+  line-height: 1.2;
+  font-weight: 900;
+  text-align: center;
+}
+
+.bw-header-right .nav { height: 45px; }
+.bw-header-right .actions { height: 45px; margin-left: 0; }
+
+.restoreBack,
+.restoreNudge,
+.drawerBack,
+.drawer,
+#supportOpen { display: none !important; }
+
+.vehicles { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+.vehicle { scroll-margin-top: 130px; }
+.vehiclePanel { scroll-margin-top: 135px; }
+
+.slide.bw-online-ups-slide img {
+  object-position: center center !important;
+}
+
+.dynamicTrack { animation-duration: 30s !important; }
+
+@media (min-width: 821px) {
+  .slide.bw-online-ups-slide .heroCopy {
+    max-width: 690px;
+  }
+  .slide.bw-online-ups-slide .heroCopy h1 {
+    font-size: clamp(50px, 5vw, 72px) !important;
+    line-height: 1 !important;
+    margin-bottom: 20px;
+  }
+  .slide.bw-online-ups-slide .heroBtns {
+    margin-top: 24px;
+  }
+  .quickbar {
+    margin-top: 28px !important;
+    margin-bottom: 24px !important;
+  }
+}
+
+@media (max-width: 1050px) {
+  .header.bw-updated-header .wrap { gap: 14px; }
+  .header.bw-updated-header .logoImage,
+  .header.bw-updated-header .logoImage img { width: 125px !important; min-width: 125px; }
+  .bw-header-right { column-gap: 12px; }
+  .bw-header-message { font-size: 15px; }
+  .vehicles { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
+
+@media (max-width: 820px) {
+  .header.bw-updated-header,
+  .header.bw-updated-header.isCompact,
+  .header.bw-updated-header.isScrolled,
+  .header.bw-updated-header .wrap {
+    height: 104px !important;
+    min-height: 104px !important;
+  }
+  .header.bw-updated-header .logoImage {
+    width: 112px !important;
+    min-width: 112px;
+    height: 96px !important;
+  }
+  .header.bw-updated-header .logoImage img {
+    width: 112px !important;
+    max-height: 96px !important;
+  }
+  .bw-header-right { column-gap: 8px; }
+  .bw-header-message { font-size: 12px; margin-bottom: 3px; }
+  .header.bw-updated-header .nav {
+    position: absolute !important;
+    top: 104px !important;
+    height: auto !important;
+    z-index: 70 !important;
+    pointer-events: none;
+  }
+  .header.bw-updated-header .nav.open {
+    transform: translateY(0) !important;
+    pointer-events: auto;
+  }
+  .header.bw-updated-header .actions { margin-left: auto; }
+  .vehiclePanel { scroll-margin-top: 118px; }
+}
+
+@media (max-width: 560px) {
+  .header.bw-updated-header .wrap { width: calc(100% - 20px); gap: 8px; }
+  .header.bw-updated-header .logoImage {
+    width: 92px !important;
+    min-width: 92px;
+  }
+  .header.bw-updated-header .logoImage img { width: 92px !important; }
+  .bw-header-message { font-size: 11px; text-align: left; }
+  .vehicles {
+    display: flex !important;
+    overflow-x: auto;
+  }
+}
