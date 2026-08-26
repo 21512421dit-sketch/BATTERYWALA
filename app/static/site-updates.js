@@ -5,6 +5,7 @@
     const logoPath = '/static/images/batterywala-logo-original.png';
     const heroPath = '/static/images/online-ups-smf-hero.png';
     const tractorPath = '/static/images/earth-movers-tractor.png';
+    const generatorPath = '/static/images/generator-battery.png';
 
     const header = document.querySelector('.header');
     const headerWrap = header?.querySelector('.wrap');
@@ -16,9 +17,27 @@
       right.className = 'bw-header-right';
       const message = document.createElement('p');
       message.className = 'bw-header-message';
-      message.textContent = 'Choose the Battery from Top Brands fit for your requirements';
-      right.append(message, nav, actions);
+      const messageText = document.createElement('span');
+      messageText.textContent = 'Choose the Battery from Top Brands fit for your requirements';
+      message.append(messageText);
+      const row = document.createElement('div');
+      row.className = 'bw-header-row';
+      row.append(nav, actions);
+      right.append(message, row);
       headerWrap.append(right);
+
+      const alignHeaderRow = () => {
+        if (window.innerWidth <= 820) {
+          row.style.removeProperty('width');
+          return;
+        }
+        const rightBox = right.getBoundingClientRect();
+        const textBox = messageText.getBoundingClientRect();
+        row.style.width = `${Math.max(0, rightBox.right - textBox.left)}px`;
+      };
+      requestAnimationFrame(alignHeaderRow);
+      document.fonts?.ready.then(alignHeaderRow);
+      window.addEventListener('resize', alignHeaderRow, { passive: true });
     }
 
     const headerLogo = document.querySelector('.header .logoImage img');
@@ -62,11 +81,11 @@
     });
 
     const stripItems = [
+      'Automotive Battery',
       'Doorstep Fitment',
-      'Inverter and UPS Battery',
-      'Industrial Battery',
-      'Tubular and SMF Battery',
-      'Forklift and Stacker Battery',
+      'Home Backup Power',
+      'Battery Diagnostics',
+      'Commercial Fleets',
       'Battery Backup Restoration Service'
     ];
     document.querySelectorAll('.dynamicTrack').forEach(track => {
@@ -81,11 +100,55 @@
       while (walker.nextNode()) nodes.push(walker.currentNode);
       nodes.forEach(node => {
         if (node.parentElement?.closest('script,style')) return;
-        node.nodeValue = node.nodeValue.replaceAll(from, to);
+        node.nodeValue = node.nodeValue.replace(from, to);
       });
     };
-    replaceText(document.body, 'Battery Life cycle Restoration', 'Battery Backup Restoration Service');
-    replaceText(document.body, 'Battery lifecycle assistance', 'Battery Backup Restoration Service');
+    replaceText(document.body, /battery[ -]health/gi, 'Battery Backup Restoration Service');
+    replaceText(document.body, /health checks/gi, 'service checks');
+    replaceText(document.body, /Battery Life cycle Restoration/gi, 'Battery Backup Restoration Service');
+    replaceText(document.body, /Battery lifecycle assistance/gi, 'Battery Backup Restoration Service');
+    replaceText(document.body, /Automobile Batter(?:y|ies)/gi, 'Automotive Battery');
+    replaceText(document.body, /\bregeneration\b/gi, 'Battery Backup Restoration');
+
+    document.querySelectorAll('a[href="#finder"]').forEach(link => {
+      link.href = '#applications';
+    });
+    document.querySelector('.nav a[href="#applications"]')?.nextElementSibling?.matches('a[href="#applications"]') &&
+      document.querySelector('.nav a[href="#applications"]')?.nextElementSibling?.remove();
+    document.getElementById('finder')?.remove();
+
+    const quickRestoration = document.querySelector('.quickbar .quick:last-child');
+    if (quickRestoration) {
+      const title = quickRestoration.querySelector('strong');
+      const copy = quickRestoration.querySelector('small');
+      if (title) title.textContent = 'Battery Backup Restoration Service';
+      if (copy) copy.textContent = 'Technical battery regeneration service';
+    }
+
+    const serviceCards = [...document.querySelectorAll('#services .service')];
+    const restorationCard = serviceCards[2];
+    const diagnosticsCard = serviceCards[1];
+    if (diagnosticsCard) {
+      const copy = diagnosticsCard.querySelector('p');
+      if (copy) copy.textContent = 'Battery condition diagnostics and practical next steps based on performance, condition and use case.';
+    }
+    if (restorationCard) {
+      const eyebrow = restorationCard.querySelector('.eyebrow');
+      const title = restorationCard.querySelector('h3');
+      const copy = restorationCard.querySelector('p');
+      if (eyebrow) eyebrow.textContent = '03 · Battery Backup Restoration Service';
+      if (title) title.textContent = 'Restore dependable battery backup';
+      if (copy) copy.textContent = 'Our Battery Backup Restoration Service is technically a battery regeneration service for eligible batteries, helping recover backup performance before replacement is considered.';
+    }
+
+    const restorationReason = [...document.querySelectorAll('.reason')]
+      .find(reason => reason.querySelector('b')?.textContent.trim() === '04');
+    if (restorationReason) {
+      const title = restorationReason.querySelector('h4');
+      const copy = restorationReason.querySelector('p');
+      if (title) title.textContent = 'Battery Backup Restoration Service';
+      if (copy) copy.textContent = 'Technical battery regeneration for eligible batteries can restore useful backup performance and reduce unnecessary replacement.';
+    }
     document.addEventListener('click', event => {
       if (!event.target.closest('.nextStep')) return;
       requestAnimationFrame(() => {
@@ -95,62 +158,91 @@
     });
 
     const vehicles = document.getElementById('vehicles');
-    const finderOptions = document.getElementById('finderOptions');
     const panel = document.querySelector('.vehiclePanel');
     const content = document.getElementById('vehicleContent');
     const largeVisual = document.getElementById('bigIcon');
-    if (vehicles && finderOptions && panel && content && largeVisual) {
+    if (vehicles && panel && content && largeVisual) {
       const sourceCards = [...vehicles.querySelectorAll('.vehicle')];
-      const extras = [
+      const sourceImage = index => sourceCards[index]?.querySelector('img')?.src;
+      const applications = [
         {
-          name: 'Earth Movers and Tractor',
+          name: 'Two & Three Wheeler',
+          image: sourceImage(0),
+          description: 'Dependable starting power for motorcycles, scooters, three-wheelers and everyday mobility.',
+          chips: ['Motorcycle', 'Scooter', 'Three-wheeler']
+        },
+        {
+          name: 'Car & SUV',
+          image: sourceImage(1),
+          description: 'Correctly matched starting batteries for hatchbacks, sedans, SUVs and premium passenger vehicles.',
+          chips: ['Car', 'SUV', 'Passenger vehicle']
+        },
+        {
+          name: 'Earth Mover & Tractor',
           image: tractorPath,
           description: 'Rugged starting and power solutions for tractors, construction equipment and demanding off-road duty cycles.',
           chips: ['Tractor', 'Earth mover', 'Construction equipment']
         },
         {
-          name: 'Online UPS and SMF Battery',
-          source: sourceCards[3],
-          description: 'Reliable online UPS and SMF battery-bank solutions for IT infrastructure, factories and critical operations.',
-          chips: ['Online UPS', 'SMF bank', 'Critical backup']
+          name: 'Bus, Truck & Commercial Vehicle',
+          image: sourceImage(2),
+          description: 'Heavy-duty batteries and support workflows designed around commercial vehicle and fleet uptime.',
+          chips: ['Bus', 'Truck', 'Commercial fleet']
+        },
+        {
+          name: 'Generator Battery',
+          image: generatorPath,
+          description: 'Reliable starting batteries for generators serving homes, businesses and critical facilities.',
+          chips: ['Generator', 'Standby power', 'Industrial']
+        },
+        {
+          name: 'Tubular Battery',
+          image: sourceImage(3),
+          description: 'Long-duration tubular battery solutions for inverter and home backup applications.',
+          chips: ['Inverter', 'Home backup', 'Long duration']
+        },
+        {
+          name: 'SMF Battery',
+          image: heroPath,
+          description: 'Sealed maintenance-free batteries for UPS systems, IT infrastructure and critical backup.',
+          chips: ['SMF', 'Online UPS', 'Critical backup']
+        },
+        {
+          name: 'Traction Battery',
+          image: sourceImage(4),
+          description: 'Deep-cycle traction power for forklifts, stackers and material-handling equipment.',
+          chips: ['Forklift', 'Stacker', 'Material handling']
         }
       ];
 
-      extras.forEach((item, index) => {
-        const sourceImage = item.source?.querySelector('img');
-        const imagePath = item.image || sourceImage?.src || heroPath;
+      vehicles.innerHTML = '';
+      applications.forEach((item, index) => {
+        const imagePath = item.image || heroPath;
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'vehicle bw-extra-vehicle';
-        button.dataset.extra = String(index);
+        button.className = `vehicle bw-application${index === 0 ? ' active' : ''}`;
+        button.dataset.application = String(index);
         button.innerHTML = `<img class="vehiclePhoto" src="${imagePath}" alt="${item.name} application"><strong>${item.name}</strong>`;
         vehicles.append(button);
-
-        const option = document.createElement('button');
-        option.type = 'button';
-        option.className = 'option';
-        option.dataset.name = item.name;
-        option.textContent = item.name;
-        finderOptions.append(option);
       });
 
       const scrollToPanel = () => panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const showApplication = index => {
+        const item = applications[index];
+        const button = vehicles.querySelector(`[data-application="${index}"]`);
+        vehicles.querySelectorAll('.vehicle').forEach(card => card.classList.toggle('active', card === button));
+        largeVisual.innerHTML = `<img class="vehiclePhotoLarge" src="${item.image || heroPath}" alt="${item.name} application">`;
+        content.innerHTML = `<div class="tween"><span class="eyebrow">Selected application</span><h3>${item.name}</h3><p style="color:#c4cbea;line-height:1.7">${item.description}</p><div class="vehicleChips">${item.chips.map(chip => `<span class="chip">${chip}</span>`).join('')}</div><a class="btn primary" href="#battery-request">Find a solution →</a></div>`;
+      };
+      showApplication(0);
       vehicles.addEventListener('click', event => {
-        const button = event.target.closest('.bw-extra-vehicle');
+        const button = event.target.closest('.bw-application');
         if (!button) return;
         event.preventDefault();
         event.stopImmediatePropagation();
-        const item = extras[Number(button.dataset.extra)];
-        vehicles.querySelectorAll('.vehicle').forEach(card => card.classList.toggle('active', card === button));
-        const image = button.querySelector('img');
-        largeVisual.innerHTML = `<img class="vehiclePhotoLarge" src="${image.src}" alt="${item.name} application">`;
-        content.innerHTML = `<div class="tween"><span class="eyebrow">Selected application</span><h3>${item.name}</h3><p style="color:#c4cbea;line-height:1.7">${item.description}</p><div class="vehicleChips">${item.chips.map(chip => `<span class="chip">${chip}</span>`).join('')}</div><a class="btn primary" href="#battery-request">Find a solution →</a></div>`;
+        showApplication(Number(button.dataset.application));
         scrollToPanel();
       }, true);
-
-      vehicles.addEventListener('click', event => {
-        if (event.target.closest('.vehicle')) requestAnimationFrame(scrollToPanel);
-      });
     }
   };
 
