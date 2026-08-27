@@ -14,6 +14,7 @@ instance/
 *.sqlite
 *.sqlite3
 *.pdf
+!app/assets/quotation-template.pdf
 
 # Editor and operating-system files
 .vscode/

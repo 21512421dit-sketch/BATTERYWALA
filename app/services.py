@@ -55,11 +55,11 @@ def extract_pdf(path,source_type='retail'):
 def publish(payload):
  if DATA.exists(): BACKUP.write_bytes(DATA.read_bytes())
  tmp=DATA.with_suffix('.tmp'); tmp.write_text(json.dumps(payload,indent=2),encoding='utf-8'); tmp.replace(DATA)
-def notify(lead,form,result,recipients):
+def notify(lead,form,result,recipients,include_customer=True):
  subject=f"BatteryWala recommendation for {lead.name}"; body=f"Hello {lead.name},\n\nRecommendation: {json.dumps(result,indent=2)}\n\nRequest: {json.dumps(form,indent=2)}"
  targets=[]
- if lead.email: targets.append(('email',lead.email))
- if lead.phone: targets.append(('sms',lead.phone))
+ if include_customer and lead.email: targets.append(('email',lead.email))
+ if include_customer and lead.phone: targets.append(('sms',lead.phone))
  targets += [(r.kind,r.value) for r in recipients if r.active]
  for channel,target in targets:
   status='queued'; detail='Provider not configured'

@@ -182,3 +182,13 @@
     overflow-x: auto;
   }
 }
+/* Quotation controls only; existing page layout is unchanged. */
+.bw-quotation { margin-top: 24px; padding: 22px; border: 1px solid #dce3ee; border-radius: 14px; background: #f5f8ff; color: #17243d; }
+.bw-quotation[hidden], .bw-quotation [hidden] { display: none; }
+.bw-quotation h3, .bw-quotation h4 { margin: 0 0 12px; }
+.bw-quotation p { line-height: 1.6; overflow-wrap: anywhere; }
+.bw-quotation form { margin-top: 24px; }
+.bw-quotation .field { margin: 14px 0; }
+.bw-quotation select, .bw-quotation input { width: 100%; box-sizing: border-box; }
+.bw-quotation button:disabled { opacity: .6; cursor: wait; }
+.bw-quotation [data-quote-download] { white-space: normal; }

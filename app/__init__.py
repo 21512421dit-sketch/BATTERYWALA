@@ -17,6 +17,8 @@ def create_app(test_config=None):
  def load_user(uid): return db.session.get(User,int(uid))
  from .routes import bp
  app.register_blueprint(bp)
+ from .quotations import bp as quotations_bp
+ app.register_blueprint(quotations_bp)
  with app.app_context():
   db.create_all(); ensure_admin(app)
  return app

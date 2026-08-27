@@ -28,7 +28,7 @@ def index():
  path=Path(__file__).resolve().parent.parent/'docs'/'optimized_main_prototype.html'
  html=path.read_text(encoding='utf-8')
  head='''<link rel="icon" href="/static/images/batterywala-logo-original.png"><link rel="stylesheet" href="/static/site-updates.css"><script>try{sessionStorage.setItem('bwRestoreSeen','1')}catch(e){}</script></head>'''
- body='''<script src="/static/site-updates.js"></script></body>'''
+ body='''<script src="/static/site-updates.js"></script><script src="/static/quotation.js"></script></body>'''
  return Response(html.replace('</head>',head).replace('</body>',body),mimetype='text/html')
 @bp.post('/api/predict')
 def api_predict():
