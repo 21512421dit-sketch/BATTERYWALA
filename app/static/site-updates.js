@@ -301,7 +301,7 @@
         });
         fieldsHost.addEventListener('change', updateConditions); updateConditions();
       };
-      fetch('/api/form-schemas').then(response => {
+      fetch('/api/form-schemas', {headers: {'ngrok-skip-browser-warning': '1'}}).then(response => {
         if (!response.ok) throw new Error('Unable to load form options');
         return response.json();
       }).then(schemas => {

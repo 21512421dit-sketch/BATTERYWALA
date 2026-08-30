@@ -71,7 +71,7 @@
     status.textContent = 'Sending your quotation…';
     try {
       const response = await fetch(activeQuote.send_url, {
-        method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(payload)
+        method: 'POST', headers: {'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1'}, body: JSON.stringify(payload)
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Unable to send the quotation.');
