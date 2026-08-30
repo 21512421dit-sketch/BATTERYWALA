@@ -23,14 +23,21 @@ def test_dynamic_form_schema_and_conditional_validation(tmp_path):
  c=app.test_client(); schemas=c.get('/api/form-schemas')
  assert schemas.status_code==200
  assert set(schemas.json)=={'new','restoration'}
- assert len(schemas.json['new']['applications'])==6
+ assert len(schemas.json['new']['applications'])==12
+ assert all(key in schemas.json['new']['applications'] for key in
+            ('three_wheeler','four_wheeler','commercial_vehicle','bus','truck','tractor','earth_mover'))
+ vehicle_fields={field['name'] for field in schemas.json['new']['applications']['four_wheeler']['fields']}
+ assert {'vehicle_make','vehicle_model','registration_year','city','pincode'} <= vehicle_fields
+ assert 'vehicle_details' not in vehicle_fields and 'vehicle_type' not in vehicle_fields
  form={'solution_type':'new','application_key':'inverter','name':'A','phone':'9876543210',
-       'capacity_ah':'150','quantity':'2','city_pincode':'Pune 411001','exchange_old_battery':'no'}
+       'capacity_ah':'150','quantity':'2','city':'Pune','pincode':'411001','exchange_old_battery':'no'}
  assert validate_form(form)==[]
  assert validate_form(form|{'exchange_old_battery':'yes'})==['old_capacity_ah','old_quantity']
  script=c.get('/static/site-updates.js').data
  assert b'/api/form-schemas' in script and b'data-dynamic-fields' in script
  assert b"predictionPanel.replaceChildren()" in script and b"predictionPanel.style.display = 'none'" in script
+ page=c.get('/').data
+ assert b'note.textContent = j.message' not in page and b'box.append(sources)' not in page
  quotation_script=c.get('/static/quotation.js').data
  assert b'data-quote-download' not in quotation_script
  assert b'Choose email, mobile number, or both.' in quotation_script

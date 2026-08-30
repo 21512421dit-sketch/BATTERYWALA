@@ -289,6 +289,7 @@
           control.name = field.name; control.id = `bw-${field.name}`; label.htmlFor = control.id;
           if (field.pattern) control.pattern = field.pattern;
           if (field.min !== undefined) control.min = field.min;
+          if (field.max !== undefined) control.max = field.max;
           if (field.required) control.dataset.schemaRequired = 'true';
           if (field.show_when) wrapper.dataset.showWhen = JSON.stringify(field.show_when);
           wrapper.append(label, control); fieldsHost.append(wrapper);

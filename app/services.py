@@ -20,7 +20,17 @@ def load_data():
   legacy=json.loads(DATA.read_text(encoding='utf-8'))
   records.extend(legacy.get('records',[]));sources.append(DATA.name)
  return {'schema_version':'2.0','records':records,'catalogs':sources}
-def load_form_schemas(): return json.loads(SCHEMAS.read_text(encoding='utf-8'))
+VEHICLE_APPLICATIONS=(('three_wheeler','Three Wheeler'),('four_wheeler','Four Wheeler'),
+ ('commercial_vehicle','Commercial Vehicle'),('bus','Bus'),('truck','Truck'),('tractor','Tractor'),
+ ('earth_mover','Earth Mover'))
+def load_form_schemas():
+ data=json.loads(SCHEMAS.read_text(encoding='utf-8'));applications=data['new']['applications'];expanded={}
+ for key,schema in applications.items():
+  if key!='vehicle':expanded[key]=schema;continue
+  fields=[field for field in schema['fields'] if field['name']!='vehicle_type']
+  for vehicle_key,label in VEHICLE_APPLICATIONS:expanded[vehicle_key]={**schema,'label':label,'fields':fields}
+ data['new']['applications']=expanded
+ return data
 def validate_form(form):
  mode=form.get('solution_type','new'); application=form.get('application_key')
  schema=load_form_schemas().get(mode,{}).get('applications',{}).get(application)
@@ -31,8 +41,10 @@ def validate_form(form):
   if visible and field.get('required') and not str(form.get(field['name'],'')).strip():missing.append(field['name'])
  return missing
 class SearchUnavailable(RuntimeError): pass
-SEARCH_FIELDS=('application','application_key','vehicle_type','vehicle_details','generator_details',
-               'fuel_type','capacity_ah','voltage','new_dimensions','model_no','old_capacity_ah','old_voltage')
+SEARCH_FIELDS=('application','application_key','vehicle_type','vehicle_make','vehicle_model','registration_year',
+               'generator_make','generator_model','generator_capacity_kw','generator_year','fuel_type',
+               'capacity_ah','voltage','new_battery_height','new_battery_width','new_battery_depth','model_no',
+               'old_capacity_ah','old_voltage','vehicle_details','generator_details','new_dimensions')
 DEFAULT_SEARCH_DOMAINS=('exidecare.com','amaron.com','livguard.com','luminousindia.com','sfsonicpower.com')
 def battery_search_terms(form):
  values=[]
@@ -44,6 +56,10 @@ def battery_search_terms(form):
   value=re.sub(r'\s+',' ',value).strip()[:80]
   if value:values.append(value)
  return values
+def fitment_label(form):
+ values=(form.get('vehicle_make'),form.get('vehicle_model'),form.get('registration_year'),
+         form.get('generator_make'),form.get('generator_model'),form.get('generator_year'))
+ return ' '.join(str(value).strip() for value in values if value) or form.get('vehicle_details') or form.get('generator_details')
 def serpapi_predict(form,key):
  domains=tuple(x.strip().lower() for x in os.getenv('BATTERY_SEARCH_ALLOWED_DOMAINS',','.join(DEFAULT_SEARCH_DOMAINS)).split(',') if x.strip())
  terms=battery_search_terms(form)
@@ -71,7 +87,7 @@ def serpapi_predict(form,key):
   for model in re.findall(r'\b(?=[A-Z0-9./-]{3,24}\b)(?=[A-Z0-9./-]*[A-Z])(?=[A-Z0-9./-]*\d)[A-Z0-9][A-Z0-9./-]+\b',text.upper()):
    if model not in excluded and not re.fullmatch(r'\d+(?:\.\d+)?(?:V|AH|KW|CC|F|M|Y)',model):candidates[model]=candidates.get(model,0)+1
   if candidates:
-   model,count=max(candidates.items(),key=lambda pair:pair[1]);brand=next((label for token,label in (('EXIDE','EXIDE'),('AMARON','AMARON'),('LIVGUARD','LIVGUARD'),('LUMINOUS','LUMINOUS'),('SF SONIC','SF SONIC')) if token in text.upper()),None);capacity=re.search(r'\b(\d+(?:\.\d+)?)\s*AH\b',text,re.I);record={'source_type':'web','model_no':model,'brand':brand,'capacity_ah':float(capacity.group(1)) if capacity else None,'vehicle_model':form.get('vehicle_details') or form.get('generator_details'),'source':sources[0]['domain'],'source_url':sources[0]['url']};return {'prediction':record,'confidence':'high' if count>1 else 'medium','needs_manual_review':count<2,'message':'Google AI Overview recommendation. Confirm OEM fitment, dimensions, terminal orientation and warranty before sale.','sources':sources,'records':[record],'shared_fields':[name for name in SEARCH_FIELDS if form.get(name)]}
+   model,count=max(candidates.items(),key=lambda pair:pair[1]);brand=next((label for token,label in (('EXIDE','EXIDE'),('AMARON','AMARON'),('LIVGUARD','LIVGUARD'),('LUMINOUS','LUMINOUS'),('SF SONIC','SF SONIC')) if token in text.upper()),None);capacity=re.search(r'\b(\d+(?:\.\d+)?)\s*AH\b',text,re.I);record={'source_type':'web','model_no':model,'brand':brand,'capacity_ah':float(capacity.group(1)) if capacity else None,'vehicle_model':fitment_label(form),'source':sources[0]['domain'],'source_url':sources[0]['url']};return {'prediction':record,'confidence':'high' if count>1 else 'medium','needs_manual_review':count<2,'message':'Google AI Overview recommendation. Confirm OEM fitment, dimensions, terminal orientation and warranty before sale.','sources':sources,'records':[record],'shared_fields':[name for name in SEARCH_FIELDS if form.get(name)]}
  return {'prediction':None,'confidence':'low','needs_manual_review':True,'message':'Google did not return a verified battery model from approved sources.','sources':sources,'records':[]}
 def serper_predict(form,key):
  domains=tuple(x.strip().lower() for x in os.getenv('BATTERY_SEARCH_ALLOWED_DOMAINS',','.join(DEFAULT_SEARCH_DOMAINS)).split(',') if x.strip())
@@ -102,7 +118,7 @@ def serper_predict(form,key):
  model,count=max(candidates.items(),key=lambda pair:pair[1]);item=evidence[model];text=' '.join((item.get('title',''),item.get('snippet','')))
  brand=next((label for token,label in (('EXIDE','EXIDE'),('AMARON','AMARON'),('LIVGUARD','LIVGUARD'),('LUMINOUS','LUMINOUS'),('SF SONIC','SF SONIC')) if token in text.upper()),None)
  capacity=re.search(r'\b(\d+(?:\.\d+)?)\s*AH\b',text,re.I);capacity=float(capacity.group(1)) if capacity else None
- record={'source_type':'web','model_no':model,'brand':brand,'capacity_ah':capacity,'vehicle_model':form.get('vehicle_details') or form.get('generator_details'),'source':sources[0]['domain'],'source_url':sources[0]['url']}
+ record={'source_type':'web','model_no':model,'brand':brand,'capacity_ah':capacity,'vehicle_model':fitment_label(form),'source':sources[0]['domain'],'source_url':sources[0]['url']}
  confidence='high' if count>1 else 'medium'
  return {'prediction':record,'confidence':confidence,'needs_manual_review':confidence!='high','message':'Google recommendation only. Confirm OEM fitment, dimensions, terminal orientation and warranty before sale.','sources':sources,'records':[record],'shared_fields':[name for name in SEARCH_FIELDS if form.get(name)]}
 def web_predict(form):
@@ -144,7 +160,7 @@ def web_predict(form):
  confidence=answer.get('confidence') if answer.get('confidence') in ('high','medium','low') else 'low'
  record={'source_type':'web','model_no':str(answer['model_no'])[:80],'brand':str(answer.get('brand') or '')[:80] or None,
          'capacity_ah':num(answer.get('capacity_ah')),
-         'vehicle_model':form.get('vehicle_details') or form.get('generator_details'),
+         'vehicle_model':fitment_label(form),
          'source':sources[0]['domain'],'source_url':sources[0]['url']}
  return {'prediction':record,'confidence':confidence,'needs_manual_review':confidence!='high',
          'message':str(answer.get('summary') or 'Web recommendation only. Confirm OEM fitment before sale.')[:500],
@@ -163,8 +179,9 @@ def predict(form):
   req=num(form.get('capacity_ah')); got=num(r.get('capacity_ah'))
   capacity_match=bool(req and got and req==got)
   if req and got: score+=35 if capacity_match else max(-20,10-abs(req-got))
-  vehicle_match=bool(form.get('vehicle_details') and r.get('vehicle_model') and
-                     norm(form['vehicle_details'])==norm(r['vehicle_model']))
+  requested_vehicle=form.get('vehicle_model') or form.get('vehicle_details')
+  vehicle_match=bool(requested_vehicle and r.get('vehicle_model') and
+                     norm(requested_vehicle)==norm(r['vehicle_model']))
   if vehicle_match:score+=80
   if score: ranked.append((score,r,model_match or vehicle_match,capacity_match and application_match))
  ranked.sort(key=lambda x:-x[0]); top=ranked[0] if ranked else None
