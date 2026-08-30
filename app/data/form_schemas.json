@@ -1,0 +1,130 @@
+{
+  "new": {
+    "label": "New battery",
+    "applications": {
+      "two_wheeler": {
+        "label": "Two Wheeler",
+        "fields": [
+          {"name": "name", "label": "Customer name", "type": "text", "required": true},
+          {"name": "phone", "label": "WhatsApp mobile number", "type": "tel", "required": true, "pattern": "[0-9]{10}"},
+          {"name": "vehicle_details", "label": "Two-wheeler make, model and registration year", "type": "text", "required": true},
+          {"name": "fuel_type", "label": "Fuel", "type": "select", "required": true, "options": ["Petrol", "E-Vehicle"]},
+          {"name": "city_pincode", "label": "City and PIN code", "type": "text", "required": true},
+          {"name": "exchange_old_battery", "label": "Old battery of the same model available for exchange?", "type": "select", "required": true, "options": [{"value": "yes", "label": "Yes"}, {"value": "no", "label": "No"}]},
+          {"name": "model_no", "label": "Old battery model", "type": "text", "show_when": {"exchange_old_battery": "yes"}}
+        ]
+      },
+      "vehicle": {
+        "label": "Three Wheeler to Tractor / Earth Mover",
+        "fields": [
+          {"name": "name", "label": "Customer name", "type": "text", "required": true},
+          {"name": "phone", "label": "WhatsApp mobile number", "type": "tel", "required": true, "pattern": "[0-9]{10}"},
+          {"name": "vehicle_type", "label": "Vehicle type", "type": "select", "required": true, "options": ["Three Wheeler", "Four Wheeler", "Commercial Vehicle", "Bus", "Truck", "Tractor", "Earth Mover"]},
+          {"name": "vehicle_details", "label": "Vehicle make, model and registration year", "type": "text", "required": true},
+          {"name": "fuel_type", "label": "Fuel", "type": "select", "required": true, "options": ["Petrol", "LPG", "CNG", "Diesel", "E-Vehicle"]},
+          {"name": "city_pincode", "label": "City and PIN code", "type": "text", "required": true},
+          {"name": "exchange_old_battery", "label": "Old battery of the same model available for exchange?", "type": "select", "required": true, "options": [{"value": "yes", "label": "Yes"}, {"value": "no", "label": "No"}]},
+          {"name": "model_no", "label": "Old battery model", "type": "text", "show_when": {"exchange_old_battery": "yes"}}
+        ]
+      },
+      "generator": {
+        "label": "Generator",
+        "fields": [
+          {"name": "name", "label": "Customer name", "type": "text", "required": true},
+          {"name": "phone", "label": "WhatsApp mobile number", "type": "tel", "required": true, "pattern": "[0-9]{10}"},
+          {"name": "generator_details", "label": "Generator make, model, capacity (kW) and year", "type": "text", "required": true},
+          {"name": "fuel_type", "label": "Fuel", "type": "select", "required": true, "options": ["Petrol", "LPG", "CNG", "Diesel"]},
+          {"name": "city_pincode", "label": "City and PIN code", "type": "text", "required": true},
+          {"name": "exchange_old_battery", "label": "Old battery of the same model available for exchange?", "type": "select", "required": true, "options": [{"value": "yes", "label": "Yes"}, {"value": "no", "label": "No"}]},
+          {"name": "model_no", "label": "Old battery model", "type": "text", "show_when": {"exchange_old_battery": "yes"}}
+        ]
+      },
+      "inverter": {
+        "label": "Inverter / Tubular Battery",
+        "fields": [
+          {"name": "name", "label": "Customer name", "type": "text", "required": true},
+          {"name": "phone", "label": "WhatsApp mobile number", "type": "tel", "required": true, "pattern": "[0-9]{10}"},
+          {"name": "capacity_ah", "label": "New tubular battery capacity (Ah)", "type": "number", "required": true, "min": 1},
+          {"name": "quantity", "label": "Quantity", "type": "number", "required": true, "min": 1},
+          {"name": "city_pincode", "label": "City and PIN code", "type": "text", "required": true},
+          {"name": "exchange_old_battery", "label": "Old battery of the same model available for exchange?", "type": "select", "required": true, "options": [{"value": "yes", "label": "Yes"}, {"value": "no", "label": "No"}]},
+          {"name": "old_capacity_ah", "label": "Old tubular battery capacity (Ah)", "type": "number", "required": true, "min": 1, "show_when": {"exchange_old_battery": "yes"}},
+          {"name": "old_quantity", "label": "Old battery quantity", "type": "number", "required": true, "min": 1, "show_when": {"exchange_old_battery": "yes"}}
+        ]
+      },
+      "online_ups": {
+        "label": "Online UPS / SMF Battery",
+        "fields": [
+          {"name": "name", "label": "Customer name", "type": "text", "required": true},
+          {"name": "phone", "label": "WhatsApp mobile number", "type": "tel", "required": true, "pattern": "[0-9]{10}"},
+          {"name": "capacity_ah", "label": "New SMF battery capacity (Ah)", "type": "number", "required": true, "min": 1},
+          {"name": "quantity", "label": "Quantity", "type": "number", "required": true, "min": 1},
+          {"name": "city_pincode", "label": "City and PIN code", "type": "text", "required": true},
+          {"name": "exchange_old_battery", "label": "Old battery of the same model available for exchange?", "type": "select", "required": true, "options": [{"value": "yes", "label": "Yes"}, {"value": "no", "label": "No"}]},
+          {"name": "old_capacity_ah", "label": "Old SMF battery capacity (Ah)", "type": "number", "required": true, "min": 1, "show_when": {"exchange_old_battery": "yes"}},
+          {"name": "old_quantity", "label": "Old battery quantity", "type": "number", "required": true, "min": 1, "show_when": {"exchange_old_battery": "yes"}}
+        ]
+      },
+      "forklift_stacker": {
+        "label": "Forklift / Stacker / Tow Truck",
+        "fields": [
+          {"name": "company_address", "label": "Company name and address", "type": "textarea", "required": true},
+          {"name": "name", "label": "Representative name", "type": "text", "required": true},
+          {"name": "phone", "label": "WhatsApp mobile number", "type": "tel", "required": true, "pattern": "[0-9]{10}"},
+          {"name": "email", "label": "Email address", "type": "email", "required": true},
+          {"name": "vehicle_type", "label": "Battery-operated vehicle", "type": "select", "required": true, "options": ["Forklift", "Stacker", "Tow Truck", "Other"]},
+          {"name": "vehicle_details", "label": "Vehicle make and year", "type": "text", "required": true},
+          {"name": "capacity_ah", "label": "New traction battery capacity (Ah)", "type": "number", "required": true, "min": 1},
+          {"name": "voltage", "label": "New traction battery voltage", "type": "number", "required": true, "min": 1},
+          {"name": "new_dimensions", "label": "New battery dimensions (height x width x depth)", "type": "text", "required": true},
+          {"name": "city_pincode", "label": "Delivery city and PIN code", "type": "text", "required": true},
+          {"name": "exchange_old_battery", "label": "Old battery of the same model available for exchange?", "type": "select", "required": true, "options": [{"value": "yes", "label": "Yes"}, {"value": "no", "label": "No"}]},
+          {"name": "old_capacity_ah", "label": "Old traction battery capacity (Ah)", "type": "number", "required": true, "min": 1, "show_when": {"exchange_old_battery": "yes"}},
+          {"name": "old_voltage", "label": "Old traction battery voltage", "type": "number", "required": true, "min": 1, "show_when": {"exchange_old_battery": "yes"}},
+          {"name": "old_dimensions", "label": "Old battery dimensions (height x width x depth)", "type": "text", "required": true, "show_when": {"exchange_old_battery": "yes"}},
+          {"name": "doubts", "label": "Other details / specific requirement", "type": "textarea"}
+        ]
+      }
+    }
+  },
+  "restoration": {
+    "label": "Battery Backup Restoration",
+    "note": "Restoration is available only for eligible water-based batteries.",
+    "applications": {
+      "inverter_tubular": {
+        "label": "Inverter / Tubular Battery",
+        "fields": [
+          {"name": "company_address", "label": "Company name and address", "type": "textarea"},
+          {"name": "name", "label": "Representative name", "type": "text", "required": true},
+          {"name": "phone", "label": "WhatsApp mobile number", "type": "tel", "required": true, "pattern": "[0-9]{10}"},
+          {"name": "email", "label": "Email address", "type": "email"},
+          {"name": "old_capacity_ah", "label": "Old tubular battery capacity (Ah)", "type": "number", "required": true, "min": 1},
+          {"name": "old_voltage", "label": "Old tubular battery voltage", "type": "number", "required": true, "min": 1},
+          {"name": "manufacturing_year", "label": "Manufacturing year", "type": "number", "required": true, "min": 1990},
+          {"name": "old_quantity", "label": "Old battery quantity", "type": "number", "required": true, "min": 1},
+          {"name": "city_pincode", "label": "Delivery city and PIN code", "type": "text", "required": true},
+          {"name": "exchange_old_battery", "type": "hidden", "value": "no"},
+          {"name": "doubts", "label": "Other details / specific requirement", "type": "textarea"}
+        ]
+      },
+      "traction": {
+        "label": "Forklift / Stacker / Tow Truck Traction Battery",
+        "fields": [
+          {"name": "company_address", "label": "Company name and address", "type": "textarea", "required": true},
+          {"name": "name", "label": "Representative name", "type": "text", "required": true},
+          {"name": "phone", "label": "WhatsApp mobile number", "type": "tel", "required": true, "pattern": "[0-9]{10}"},
+          {"name": "email", "label": "Email address", "type": "email", "required": true},
+          {"name": "vehicle_type", "label": "Battery-operated vehicle", "type": "select", "required": true, "options": ["Forklift", "Stacker", "Tow Truck", "Other"]},
+          {"name": "vehicle_details", "label": "Vehicle make and year", "type": "text", "required": true},
+          {"name": "old_capacity_ah", "label": "Old traction battery capacity (Ah)", "type": "number", "required": true, "min": 1},
+          {"name": "old_voltage", "label": "Old traction battery voltage", "type": "number", "required": true, "min": 1},
+          {"name": "manufacturing_year", "label": "Manufacturing year", "type": "number", "required": true, "min": 1990},
+          {"name": "old_dimensions", "label": "Battery dimensions (height x width x depth)", "type": "text", "required": true},
+          {"name": "city_pincode", "label": "Delivery city and PIN code", "type": "text", "required": true},
+          {"name": "exchange_old_battery", "type": "hidden", "value": "no"},
+          {"name": "doubts", "label": "Other details / specific requirement", "type": "textarea"}
+        ]
+      }
+    }
+  }
+}

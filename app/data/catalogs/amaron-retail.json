@@ -1,0 +1,986 @@
+{
+  "schema_version": "2.0",
+  "updated_at": "2026-08-30T08:51:56.388259+00:00",
+  "records": [
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-PR-00050B20L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 4565.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-PR-00050B20R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 4565.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-PR-0055B24LS",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6853.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-PR-574102069",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 10073.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-PR-600109087",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 16694.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-PR-0BH80D31L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 14759.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-00040B20L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 3948.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-00040B20R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 3948.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-00042B20L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 4204.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-00042B20R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 4204.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-0BH40B20L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 4399.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-0BH45D20L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5891.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-0BH90D23L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6363.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-545106036",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5378.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-555112054",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6811.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-566112060",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6961.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-00080D23L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6049.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-550113042",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5952.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-550114042",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5952.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-555111054",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6811.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-565106590",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6974.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-FL-580112073",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 10154.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AMS-FL-00040B20L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 3948.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AMS-FL-00042B20L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 4204.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AMS-FL-00042B20R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 4204.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AMS-FL-550114042",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5952.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AMS-FL-565106590",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6974.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-00034B20L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 3689.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-00034B20R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 3689.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-00038B20L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 3405.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-00038B20R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 3405.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-0BH38B20R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 4307.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-00050B24L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5780.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-00095D26L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6660.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-00095D26R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6660.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-565106590",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6722.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-00085D23R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6312.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-00105D26R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7319.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-00105D26L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7319.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-00105D31R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7174.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-00105D31L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7174.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-00135D31R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7851.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-GO-00135D31L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7851.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-0BL0300RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 3006.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-0BL0400LMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 3274.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-0BL0400RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 3274.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL00500RS",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5589.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL00500LS",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5589.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-0BL0700LMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6132.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-0BL0700RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6132.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-0BL0800LMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6241.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-0BL0800RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6241.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL880D31R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6430.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL880D31L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6430.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-0BL900LMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6768.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-0BL900RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6768.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL1000LMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7318.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL1000RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7318.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL1300RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 10043.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL1500RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 11933.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL1600LMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5052.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL1600RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5052.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL0030RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 2833.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL0040LMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 3141.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL0040RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 3141.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL0050LS",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5344.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL0050RS",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5344.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL0060LMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 4810.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL0060RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 4810.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL0070LMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5877.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL0070RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5877.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL0080LMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5985.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL0080RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 5985.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL0090LMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6422.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL0090RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6422.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL090E41L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6581.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL090E41R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6581.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL100E41L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7176.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-BL100E41R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7176.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-0BL100LMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7083.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-0BL100RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7083.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-0BL130RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 9699.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-BL-0BL150RMF",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 11561.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-HW-HC620D31R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6738.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-HW-NT650L29R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7262.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-HW-NT800D04R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 11967.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-HW-NTX000D04R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 13691.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-HW-HC180N04R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 15517.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-HW-HCX20H52R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 15942.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-HW-NT800L41R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 9603.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-HW-NT700F41R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 8480.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-HW-NT800F51R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 10600.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-HR-TR500D31L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6669.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-HR-TR500D31R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 6669.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-HR-NT600H29L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7190.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-HR-NT600H29R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7190.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-HR-NT600E41R",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7465.0
+    },
+    {
+      "source": "IMG-20260606-WA0006.jpg",
+      "source_type": "retail",
+      "page": 1,
+      "brand": "AMARON",
+      "model_no": "AAM-HR-NT600E41L",
+      "capacity_ah": null,
+      "application": "vehicle",
+      "mrp": 7465.0
+    }
+  ]
+}

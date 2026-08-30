@@ -244,6 +244,84 @@
         scrollToPanel();
       }, true);
     }
+
+    const requestForm = document.getElementById('masterBatteryForm');
+    if (requestForm) {
+      const predictionPanel = requestForm.querySelector('#bwPrediction');
+      requestForm.innerHTML = `
+        <p class="bw-progressive-hint">Choose the requirement and application. The relevant questions will appear automatically.</p>
+        <div class="bw-form-grid">
+          <div class="field"><label for="bwSolutionType">Requirement *</label><select id="bwSolutionType" name="solution_type" required><option value="">Select</option></select></div>
+          <div class="field"><label for="bwApplicationKey">Battery application *</label><select id="bwApplicationKey" name="application_key" required disabled><option value="">Select a requirement first</option></select></div>
+        </div>
+        <p class="bw-schema-note" data-schema-note role="status"></p>
+        <div class="bw-form-grid" data-dynamic-fields></div>
+        <input type="hidden" name="application"><input type="hidden" name="battery_type">
+        <div class="bw-prediction" id="bwPrediction"></div>
+        <div class="formNav"><button class="btn primary" type="submit">Generate quotation</button><button class="btn light" type="reset">Reset</button></div>`;
+      if (predictionPanel) requestForm.querySelector('#bwPrediction').replaceWith(predictionPanel);
+      const modeSelect = requestForm.elements.solution_type;
+      const applicationSelect = requestForm.elements.application_key;
+      const fieldsHost = requestForm.querySelector('[data-dynamic-fields]');
+      const note = requestForm.querySelector('[data-schema-note]');
+      requestForm.addEventListener('reset', () => {
+        predictionPanel.replaceChildren();
+        predictionPanel.style.display = 'none';
+      });
+      const option = (value, label) => {
+        const item = document.createElement('option'); item.value = value; item.textContent = label; return item;
+      };
+      const renderFields = schema => {
+        fieldsHost.replaceChildren();
+        schema.fields.forEach(field => {
+          let control;
+          if (field.type === 'hidden') {
+            control = document.createElement('input'); control.type = 'hidden'; control.name = field.name; control.value = field.value || '';
+            fieldsHost.append(control); return;
+          }
+          const wrapper = document.createElement('div'); wrapper.className = `field${field.type === 'textarea' ? ' bw-wide' : ''}`;
+          const label = document.createElement('label'); label.textContent = `${field.label}${field.required ? ' *' : ''}`;
+          if (field.type === 'select') {
+            control = document.createElement('select'); control.append(option('', 'Select'));
+            (field.options || []).forEach(item => control.append(option(typeof item === 'string' ? item : item.value, typeof item === 'string' ? item : item.label)));
+          } else if (field.type === 'textarea') control = document.createElement('textarea');
+          else { control = document.createElement('input'); control.type = field.type || 'text'; }
+          control.name = field.name; control.id = `bw-${field.name}`; label.htmlFor = control.id;
+          if (field.pattern) control.pattern = field.pattern;
+          if (field.min !== undefined) control.min = field.min;
+          if (field.required) control.dataset.schemaRequired = 'true';
+          if (field.show_when) wrapper.dataset.showWhen = JSON.stringify(field.show_when);
+          wrapper.append(label, control); fieldsHost.append(wrapper);
+        });
+        const updateConditions = () => fieldsHost.querySelectorAll('[data-show-when]').forEach(wrapper => {
+          const conditions = JSON.parse(wrapper.dataset.showWhen);
+          const visible = Object.entries(conditions).every(([name, value]) => requestForm.elements[name]?.value === String(value));
+          wrapper.hidden = !visible;
+          const control = wrapper.querySelector('input,select,textarea'); control.disabled = !visible; control.required = visible && control.dataset.schemaRequired === 'true';
+        });
+        fieldsHost.addEventListener('change', updateConditions); updateConditions();
+      };
+      fetch('/api/form-schemas').then(response => {
+        if (!response.ok) throw new Error('Unable to load form options');
+        return response.json();
+      }).then(schemas => {
+        Object.entries(schemas).forEach(([key, value]) => modeSelect.append(option(key, value.label)));
+        modeSelect.addEventListener('change', () => {
+          applicationSelect.replaceChildren(option('', modeSelect.value ? 'Select' : 'Select a requirement first'));
+          applicationSelect.disabled = !modeSelect.value; fieldsHost.replaceChildren(); note.textContent = schemas[modeSelect.value]?.note || '';
+          Object.entries(schemas[modeSelect.value]?.applications || {}).forEach(([key, value]) => applicationSelect.append(option(key, value.label)));
+        });
+        applicationSelect.addEventListener('change', () => {
+          const schema = schemas[modeSelect.value]?.applications[applicationSelect.value];
+          requestForm.elements.application.value = schema?.label || '';
+          requestForm.elements.battery_type.value = schemas[modeSelect.value]?.label || '';
+          if (schema) renderFields(schema); else fieldsHost.replaceChildren();
+        });
+        requestForm.addEventListener('reset', () => setTimeout(() => {
+          applicationSelect.replaceChildren(option('', 'Select a requirement first')); applicationSelect.disabled = true; fieldsHost.replaceChildren(); note.textContent = '';
+        }, 0));
+      }).catch(error => { note.textContent = error.message + '. Please refresh the page.'; });
+    }
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready, { once: true });

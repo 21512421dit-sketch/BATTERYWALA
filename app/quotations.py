@@ -6,6 +6,8 @@ import re
 import secrets
 import smtplib
 import urllib.request
+import time
+from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from email.message import EmailMessage
@@ -17,13 +19,14 @@ from flask import Blueprint, abort, current_app, jsonify, request, url_for
 
 from . import db
 from .models import Delivery, Lead, Recipient
-from .services import load_data, norm, notify, predict
+from .services import SearchUnavailable, load_data, norm, notify, validate_form, web_predict
 
 bp = Blueprint('quotations', __name__)
 NOTES = {
     'yes': 'Discounted Price is after deducting the exchange value of old battery and it is including 18% GST',
     'no': 'Discounted Price is including 18% GST',
 }
+SEARCH_ATTEMPTS = defaultdict(deque)
 
 
 def money(value):
@@ -36,20 +39,21 @@ def money(value):
     return None
 
 
-def quotation_options(form):
+def quotation_options(form, prediction=None, records=None):
     """Only quote an exact battery model or an explicitly mapped vehicle.
 
     Dealer cost is not a customer selling price. All selling-price fields in
     the catalogue must already include GST; tax is never added a second time.
     """
     options = []
-    for record in load_data().get('records', []):
+    for record in (load_data().get('records', []) if records is None else records):
         if record.get('source_type') == 'scrap' or not record.get('model_no'):
             continue
         model_match = form.get('model_no') and norm(form['model_no']) == norm(record['model_no'])
         vehicle_match = (form.get('car_model') and record.get('vehicle_model')
                          and norm(form['car_model']) == norm(record['vehicle_model']))
-        if not (model_match or vehicle_match):
+        web_match = record.get('source_type') == 'web'
+        if not (model_match or vehicle_match or web_match):
             continue
         brand = norm(form.get('brand'))
         if brand and brand != 'any verified brand' and brand != norm(record.get('brand')):
@@ -72,7 +76,58 @@ def quotation_options(form):
             'warranty': record.get('warranty') or (
                 f"{record['warranty_months']} months" if record.get('warranty_months') else 'To be confirmed'),
         })
-    return options
+    if options or not prediction or not prediction.get('prediction') or prediction.get('needs_manual_review'):
+        return options
+    record = prediction['prediction']
+    if form.get('model_no') and norm(form['model_no']) != norm(record.get('model_no')):
+        return options
+    price = money(record.get('mrp')) if form.get('exchange_old_battery') == 'no' else None
+    return [{
+        'brand': record.get('brand') or 'Pending',
+        'model_no': record.get('model_no') or 'Pending',
+        'capacity_ah': record.get('capacity_ah') or '-',
+        'mrp': str(money(record.get('mrp'))) if money(record.get('mrp')) is not None else None,
+        'price': str(price) if price is not None else None,
+        'warranty': record.get('warranty') or (
+            f"{record['warranty_months']} months" if record.get('warranty_months') else 'To be confirmed'),
+        'provisional': True,
+    }]
+
+
+def quotation_sections(form, lead):
+    model = (form.get('vehicle_details') or form.get('generator_details') or
+             ' '.join(filter(None, [form.get('vehicle_brand'), form.get('car_model')])))
+    application = form.get('application') or form.get('battery_type') or '-'
+    vehicle_type = {'Passenger vehicle': 'FOUR WHEELER', 'Two wheeler': 'TWO WHEELER',
+                    'Two Wheeler': 'TWO WHEELER', 'Commercial vehicle': 'COMMERCIAL VEHICLE'}.get(
+                        application, form.get('vehicle_type') or application.upper())
+    battery = ' / '.join(filter(None, [
+        f"{form['capacity_ah']} Ah" if form.get('capacity_ah') else None,
+        f"{form['voltage']} V" if form.get('voltage') else None,
+        f"Qty {form['quantity']}" if form.get('quantity') else None,
+    ]))
+    old_battery = ' / '.join(filter(None, [
+        form.get('model_no'),
+        f"{form['old_capacity_ah']} Ah" if form.get('old_capacity_ah') else None,
+        f"{form['old_voltage']} V" if form.get('old_voltage') else None,
+        f"Qty {form['old_quantity']}" if form.get('old_quantity') else None,
+    ]))
+    customer = [('Name', lead.name), ('Mobile', lead.phone),
+                ('City / PIN code', form.get('city_pincode') or form.get('city') or form.get('pincode'))]
+    if form.get('email'):
+        customer.append(('Email', form['email']))
+    vehicle = [('Company / Model', model), ('Fuel', form.get('fuel_type')), ('Type', vehicle_type)]
+    details = [(label, value) for label, value in [
+        ('Company / Address', form.get('company_address')),
+        ('Battery requirement', battery),
+        ('New dimensions', form.get('new_dimensions')),
+        ('Exchange old battery', {'yes': 'Yes', 'no': 'No'}.get(form.get('exchange_old_battery'))),
+        ('Old battery', old_battery),
+        ('Old dimensions', form.get('old_dimensions')),
+        ('Manufacturing year', form.get('manufacturing_year')),
+        ('Other requirement', form.get('doubts')),
+    ] if value]
+    return customer, vehicle, details
 
 
 def render_pdf(lead, quote):
@@ -157,9 +212,7 @@ def render_pdf(lead, quote):
     if not rows:
         pending = lines('No verified battery price is available for this request. ' + quote['message'], 517.28)
         rows.append(([pending], 22.9 + 11.4 * (len(pending) - 1)))
-    application = form.get('application') or form.get('battery_type') or '-'
-    vehicle_type = {'Passenger vehicle': 'FOUR WHEELER', 'Two wheeler': 'TWO WHEELER',
-                    'Commercial vehicle': 'COMMERCIAL VEHICLE'}.get(application, application.upper())
+    customer_pairs, vehicle_pairs, detail_pairs = quotation_sections(form, lead)
     date = '/'.join(str(int(part)) for part in quote['date'].split('/'))
     with fitz.open(Path(__file__).with_name('assets') / 'quotation-template.pdf') as template, fitz.open() as document:
         index = 0
@@ -167,11 +220,10 @@ def render_pdf(lead, quote):
             page = document.new_page(width=595.28, height=841.89)
             fragment((0, 0, 595.28, 90), 0)
             write(date, right, 54.6, color=fitz.sRGB_to_pdf(0x64748B), align='right')
-            baseline = section('Customer', [('Name', lead.name), ('Mobile', lead.phone),
-                ('City' if form.get('city') else 'PIN code', form.get('city') or form.get('pincode'))], 112.15)
-            baseline = section('Vehicle', [('Company / Model', ' '.join(filter(None,
-                [form.get('vehicle_brand'), form.get('car_model')]))), ('Fuel', form.get('fuel_type')),
-                ('Type', vehicle_type)], baseline)
+            baseline = section('Customer', customer_pairs, 112.15)
+            baseline = section('Vehicle', vehicle_pairs, baseline)
+            if detail_pairs:
+                baseline = section('Requirement', detail_pairs, baseline)
             write('Battery Options', 32, baseline, size=12, bold=True)
             top = baseline + 14.4
             # Copy the original rounded header and fixed column widths unchanged.
@@ -224,6 +276,9 @@ def create_quotation():
         return jsonify(error='One or more form fields are too long.'), 400
     form = {k: v.strip() for k, v in payload.items()}
     form['application'] = form.get('application') or form.get('battery_type', '')
+    missing = validate_form(form) if form.get('application_key') else []
+    if missing:
+        return jsonify(error='Complete all required fields for the selected battery application.', fields=missing), 400
     if not form.get('name') or not form['application'] or not re.fullmatch(r'[0-9]{10}', form.get('phone', '')):
         return jsonify(error='Enter your name, battery type and a valid 10-digit mobile number.'), 400
     if form.get('exchange_old_battery') not in NOTES:
@@ -232,14 +287,24 @@ def create_quotation():
         return jsonify(error='Enter a valid email address.'), 400
     if form.get('capacity_ah') and (money(form['capacity_ah']) is None or money(form['capacity_ah']) <= 0):
         return jsonify(error='Enter a valid battery capacity.'), 400
-    result = predict(form)
-    options = quotation_options(form)
-    pending = not options or any(item['price'] is None for item in options)
+    now=time.monotonic();attempts=SEARCH_ATTEMPTS[request.remote_addr or 'unknown']
+    while attempts and attempts[0]<now-600:attempts.popleft()
+    # ponytail: per-process rate limit; move to the reverse proxy when multiple workers are deployed.
+    if len(attempts)>=30:return jsonify(error='Too many battery searches. Please try again later.'),429
+    attempts.append(now)
+    try:result=web_predict(form)
+    except SearchUnavailable as error:return jsonify(error=str(error)),503
+    options = quotation_options(form, result, records=result.get('records',[]))
+    provisional = any(item.get('provisional') for item in options)
+    pending = not options or provisional or any(item['price'] is None for item in options)
+    message = ('No verified battery match is available. This document is not a confirmed price offer.' if not options
+               else 'Recommended battery shown. Fitment and final price confirmation are required.' if provisional
+               else 'Price confirmation required. This document is not a confirmed price offer.' if pending
+               else 'Prices include 18% GST. Battery fitment is subject to confirmation.')
     quote = {'exchange': form['exchange_old_battery'], 'note': NOTES[form['exchange_old_battery']],
              'date': datetime.now(timezone(timedelta(hours=5, minutes=30))).strftime('%d/%m/%Y'),
              'options': options, 'status': 'pending_review' if pending else 'priced',
-             'message': ('Price confirmation required. This document is not a confirmed price offer.' if pending
-                         else 'Prices include 18% GST. Battery fitment is subject to confirmation.'),
+             'message': message,
              'token': secrets.token_urlsafe(32)}
     lead = Lead(name=form['name'], phone=form['phone'], email=form.get('email'), form_json=json.dumps(form))
     db.session.add(lead)
@@ -252,7 +317,7 @@ def create_quotation():
     notify(lead, form, result, Recipient.query.all(), include_customer=False)
     path = url_for('quotations.download', lead_id=lead.id, token=quote['token'])
     return jsonify({**result, 'quotation': {k: v for k, v in quote.items() if k != 'token'} | {
-        'download_url': path, 'send_url': path.removesuffix('/pdf') + '/send'}})
+        'send_url': path.removesuffix('/pdf') + '/send'}})
 
 
 def get_quotation(lead_id, token):
@@ -296,11 +361,11 @@ def send_quotation(lead_id, token):
     since = datetime.now(timezone.utc) - timedelta(hours=1)
     if Delivery.query.filter(Delivery.lead_id == lead.id, Delivery.created_at >= since,
                              Delivery.channel.in_(['email', 'sms'])).count() + len(targets) > 10:
-        return jsonify(error='Too many delivery attempts. Please download the PDF or try again later.'), 429
+        return jsonify(error='Too many delivery attempts. Please try again later.'), 429
     pdf = render_pdf(lead, quote)
     results = []
     for channel, target in targets:
-        status, detail = 'not_configured', 'Delivery provider is not configured. Please download the PDF.'
+        status, detail = 'not_configured', 'Delivery provider is not configured. Please contact BatteryWala.'
         try:
             if channel == 'email' and os.getenv('SMTP_HOST'):
                 message = EmailMessage()
@@ -323,7 +388,7 @@ def send_quotation(lead_id, token):
                 if (parsed.scheme != 'https' or not parsed.hostname or parsed.username or parsed.password
                         or parsed.query or parsed.fragment or parsed.path
                         or parsed.hostname in ('localhost', '127.0.0.1', '::1')):
-                    detail = 'Mobile delivery needs a public HTTPS PUBLIC_BASE_URL. Please download the PDF.'
+                    detail = 'Mobile delivery needs a public HTTPS address. Please contact BatteryWala.'
                 else:
                     link = origin + url_for('quotations.download', lead_id=lead.id, token=token)
                     body = f'BatteryWala quotation {quote["number"]}: {link}\n{quote["message"]}\n{quote["note"]}'

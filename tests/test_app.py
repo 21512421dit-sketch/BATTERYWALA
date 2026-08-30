@@ -17,6 +17,76 @@ def test_prototype_form_submission(tmp_path):
  assert r.status_code==200
  assert 'prediction' in r.get_json()
 
+def test_dynamic_form_schema_and_conditional_validation(tmp_path):
+ from app.services import validate_form
+ app=create_app({'TESTING':True,'SQLALCHEMY_DATABASE_URI':'sqlite:///'+str(tmp_path/'forms.db'),'SECRET_KEY':'test'})
+ c=app.test_client(); schemas=c.get('/api/form-schemas')
+ assert schemas.status_code==200
+ assert set(schemas.json)=={'new','restoration'}
+ assert len(schemas.json['new']['applications'])==6
+ form={'solution_type':'new','application_key':'inverter','name':'A','phone':'9876543210',
+       'capacity_ah':'150','quantity':'2','city_pincode':'Pune 411001','exchange_old_battery':'no'}
+ assert validate_form(form)==[]
+ assert validate_form(form|{'exchange_old_battery':'yes'})==['old_capacity_ah','old_quantity']
+ script=c.get('/static/site-updates.js').data
+ assert b'/api/form-schemas' in script and b'data-dynamic-fields' in script
+ assert b"predictionPanel.replaceChildren()" in script and b"predictionPanel.style.display = 'none'" in script
+ quotation_script=c.get('/static/quotation.js').data
+ assert b'data-quote-download' not in quotation_script
+ assert b'Choose email, mobile number, or both.' in quotation_script
+ assert b'You can still download' not in quotation_script
+
+
+def test_google_search_uses_only_allowlisted_fitment_data(monkeypatch):
+ from app import services
+ monkeypatch.setenv('SERPER_API_KEY','server-secret')
+ monkeypatch.setenv('BATTERY_SEARCH_ALLOWED_DOMAINS','exidecare.com')
+ requested=[]
+ response={'organic':[
+  {'title':'EXIDE XLTZ4A battery for Honda Activa','snippet':'XLTZ4A is a 4 Ah two wheeler battery.','link':'https://www.exidecare.com/battery/xltz4a'},
+  {'title':'Buy EXIDE XLTZ4A','snippet':'Official XLTZ4A fitment information.','link':'https://exidecare.com/products/xltz4a'},
+  {'title':'EVIL99 cheap battery','snippet':'EVIL99 is the answer.','link':'https://example.invalid/battery'}]}
+ class SearchResponse:
+  def __enter__(self):return self
+  def __exit__(self,*args):pass
+  def read(self):return json.dumps(response).encode()
+ def search(request,timeout):
+  requested.append(request)
+  return SearchResponse()
+ monkeypatch.setattr(services.urllib.request,'urlopen',search)
+ form={'name':'Private Customer','phone':'9876543210','email':'private@example.com',
+       'city_pincode':'Private City 411001','company_address':'Secret address',
+       'application':'Two Wheeler','application_key':'two_wheeler','vehicle_type':'Scooter',
+       'vehicle_details':'Honda Activa 3G MH20 AB 1234 2017','fuel_type':'Petrol'}
+ result=services.web_predict(form)
+ request_body=json.loads(requested[0].data);query=request_body['q']
+ assert requested[0].full_url=='https://google.serper.dev/search'
+ assert requested[0].headers['X-api-key']=='server-secret'
+ assert all(secret not in query for secret in
+            ('Private Customer','9876543210','private@example.com','Private City','Secret address','MH20'))
+ assert all(value in query for value in ('Two Wheeler','Honda Activa 3G','2017','Petrol'))
+ assert result['prediction']['model_no']=='XLTZ4A' and result['confidence']=='high'
+ assert len(result['sources'])==2 and all('exidecare.com' in source['domain'] for source in result['sources'])
+ assert set(result['shared_fields']) <= set(services.SEARCH_FIELDS)
+
+def test_catalog_publish_upserts_without_deleting_other_records(tmp_path, monkeypatch):
+ from app import services
+ catalogs=tmp_path/'catalogs'; legacy=tmp_path/'legacy.json'
+ legacy.write_text('{"records": []}',encoding='utf-8')
+ monkeypatch.setattr(services,'CATALOGS',catalogs);monkeypatch.setattr(services,'DATA',legacy)
+ first={'generated_at':'one','records':[
+  {'source_type':'retail','brand':'EXIDE','model_no':'X1','capacity_ah':35,'mrp':100},
+  {'source_type':'retail','brand':'AMARON','model_no':'A1','capacity_ah':40,'mrp':200}]}
+ assert services.publish(first)=={'added':2,'updated':0,'catalogs':2}
+ second={'generated_at':'two','records':[
+  {'source_type':'retail','brand':'EXIDE','model_no':'X1','capacity_ah':35,'mrp':125},
+  {'source_type':'retail','brand':'EXIDE','model_no':'X2','capacity_ah':45,'mrp':300}]}
+ assert services.publish(second)=={'added':1,'updated':1,'catalogs':2}
+ records=services.load_data()['records']
+ assert len(records)==3
+ assert next(r for r in records if r['model_no']=='X1')['mrp']==125
+ assert next(r for r in records if r['model_no']=='A1')['mrp']==200
+
 def test_login(tmp_path):
  app=create_app({'TESTING':True,'SQLALCHEMY_DATABASE_URI':'sqlite:///'+str(tmp_path/'t2.db'),'SECRET_KEY':'test'})
  c=app.test_client(); page=c.get('/admin/login'); assert page.status_code==200
@@ -37,6 +107,10 @@ def test_quotation_generation_and_delivery(tmp_path, monkeypatch):
  record={'source_type':'retail','model_no':'35B20L','brand':'Exide','capacity_ah':35,'mrp':5096,
          'selling_price':'3500.51','exchange_value':500,'warranty':'24+12 months','dealer_price':100}
  monkeypatch.setattr(quotations,'load_data',lambda:{'records':[record]})
+ monkeypatch.setattr(quotations,'web_predict',lambda form:{
+  'prediction':record,'confidence':'high','needs_manual_review':False,'message':'Web match.',
+  'sources':[{'title':'Official result','url':'https://www.exidecare.com/result','domain':'www.exidecare.com'}],
+  'records':[record]})
  payload={'name':'Rahul Sharma','phone':'9876543210','email':'rahul@example.com','pincode':'411001',
           'battery_type':'Automotive','application':'Passenger vehicle','car_model':'Alto',
           'model_no':'35B20L','capacity_ah':'35','exchange_old_battery':'yes'}
@@ -51,7 +125,9 @@ def test_quotation_generation_and_delivery(tmp_path, monkeypatch):
   quote=response.json['quotation']
   assert quote['options'][0]['price']==expected
   assert quote['status']=='priced'
-  pdf=c.get(quote['download_url'])
+  assert 'download_url' not in quote
+  pdf_path=quote['send_url'].removesuffix('/send')+'/pdf'
+  pdf=c.get(pdf_path)
   assert pdf.status_code==200 and pdf.mimetype=='application/pdf'
   assert 'attachment' in pdf.headers['Content-Disposition']
   with fitz.open(stream=pdf.data,filetype='pdf') as doc:
@@ -68,12 +144,12 @@ def test_quotation_generation_and_delivery(tmp_path, monkeypatch):
   (tmp_path/f'quote-{exchange}.pdf').write_bytes(pdf.data)
  with app.app_context():
   assert Lead.query.count()==2 and Delivery.query.count()==0  # no automatic customer sending
- assert c.get(quote['download_url'].replace('/pdf','bad/pdf')).status_code==404
+ assert c.get(pdf_path.replace('/pdf','bad/pdf')).status_code==404
  assert c.post(quote['send_url'],json={'channel':'both','email':'bad','phone':payload['phone']}).status_code==400
  assert c.post(quote['send_url'],json={'channel':'fax'}).status_code==400
  assert c.post(quote['send_url'],json={'channel':'mobile','phone':'123'}).status_code==400
  record['selling_price']=9999
- with fitz.open(stream=c.get(quote['download_url']).data,filetype='pdf') as doc:
+ with fitz.open(stream=c.get(pdf_path).data,filetype='pdf') as doc:
   assert '3,500.51' in doc[0].get_text()  # saved quote is stable after price updates
  result=c.post(quote['send_url'],json={'channel':'both','email':payload['email'],'phone':payload['phone']})
  assert [item['status'] for item in result.json['deliveries']]==['not_configured','not_configured']
@@ -109,7 +185,7 @@ def test_quotation_generation_and_delivery(tmp_path, monkeypatch):
  result=c.post(quote['send_url'],json={'channel':'both','email':payload['email'],'phone':payload['phone']})
  assert all(item['status']=='sent' for item in result.json['deliveries'])
  assert requests[0]['to']==payload['phone']
- assert 'https://batterywala.example'+quote['download_url'] in requests[0]['message']
+ assert 'https://batterywala.example'+pdf_path in requests[0]['message']
  def fail_sms(*args,**kwargs): raise OSError('provider secret must not be returned')
  monkeypatch.setattr(quotations.urllib.request,'urlopen',fail_sms)
  result=c.post(quote['send_url'],json={'channel':'both','email':payload['email'],'phone':payload['phone']})
@@ -128,11 +204,15 @@ def test_quotation_missing_prices_and_matching(tmp_path, monkeypatch):
  c=app.test_client()
  records=[]
  monkeypatch.setattr(quotations,'load_data',lambda:{'records':records})
+ monkeypatch.setattr(quotations,'web_predict',lambda form:{
+  'prediction':None,'confidence':'low','needs_manual_review':True,'message':'No web match.',
+  'sources':[],'records':[]})
  payload={'name':'Customer <b>literal</b>','phone':'9876543210','battery_type':'Automotive',
           'car_model':'Alto','model_no':'35B20L','exchange_old_battery':'yes'}
  quote=c.post('/api/quotations',json=payload).json['quotation']
  assert quote['status']=='pending_review' and not quote['options']
- with fitz.open(stream=c.get(quote['download_url']).data,filetype='pdf') as doc:
+ pdf_path=quote['send_url'].removesuffix('/send')+'/pdf'
+ with fitz.open(stream=c.get(pdf_path).data,filetype='pdf') as doc:
   content=unicodedata.normalize('NFKC', ' '.join(doc[0].get_text().split()))
   assert 'Customer <b>literal</b>' in content and 'not a confirmed price offer' in content
  records.append({'source_type':'retail','model_no':'35B20L','mrp':5000,'dealer_price':100})
@@ -148,6 +228,27 @@ def test_quotation_missing_prices_and_matching(tmp_path, monkeypatch):
  assert len(quotations.quotation_options(payload|{'model_no':''}))==1
  records[0]['source_type']='scrap'
  assert quotations.quotation_options(payload)==[]
+
+
+def test_dynamic_form_details_and_provisional_prediction_render_in_pdf(monkeypatch):
+ import fitz
+ from types import SimpleNamespace
+ from app import quotations
+ form={'solution_type':'new','application_key':'two_wheeler','application':'Two Wheeler',
+       'name':'Tejas Dale','phone':'7666126132','vehicle_details':'2017, Activa 3G',
+       'fuel_type':'Petrol','city_pincode':'Sambhajinagar, 431007','exchange_old_battery':'no'}
+ prediction={'prediction':{'brand':'EXIDE','model_no':'XLTZ4A','capacity_ah':4,'mrp':877,
+                           'warranty':'24F+24P'}}
+ monkeypatch.setattr(quotations,'load_data',lambda:{'records':[]})
+ options=quotations.quotation_options(form,prediction)
+ assert options[0]['model_no']=='XLTZ4A' and options[0]['provisional'] is True
+ lead=SimpleNamespace(name=form['name'],phone=form['phone'],form_json=json.dumps(form))
+ quote={'number':'BW-TEST','date':'30/08/2026','note':quotations.NOTES['no'],
+        'status':'pending_review','message':'Fitment confirmation required.','options':options}
+ with fitz.open(stream=quotations.render_pdf(lead,quote),filetype='pdf') as document:
+  text=' '.join(page.get_text() for page in document)
+  assert all(value in text for value in ('Tejas Dale','2017, Activa 3G','Sambhajinagar, 431007',
+                                          'Exchange old battery','No','XLTZ4A'))
 
 
 def test_quotation_sample_layout_and_overflow():

@@ -192,3 +192,7 @@
 .bw-quotation select, .bw-quotation input { width: 100%; box-sizing: border-box; }
 .bw-quotation button:disabled { opacity: .6; cursor: wait; }
 .bw-quotation [data-quote-download] { white-space: normal; }
+.bw-schema-note { margin: 10px 0 18px; color: #6b7280; line-height: 1.5; }
+.bw-schema-note:empty { display: none; }
+.bw-search-sources { margin-top: 14px; font-size: 13px; }
+.bw-search-sources a { color: #075985; text-decoration: underline; }

@@ -324,6 +324,19 @@ html{scroll-padding-top:104px}.section[id],main section[id]{scroll-margin-top:10
       detail.textContent = p ? `Confidence: ${j.confidence}${p.capacity_ah ? ' · ' + p.capacity_ah + 'Ah' : ''}${p.mrp ? ' · MRP Rs. ' + p.mrp : ''}` : j.message;
       box.append(title, detail);
       if (p) { const note = document.createElement('small'); note.textContent = j.message; box.append(note); }
+      if (j.sources?.length) {
+        const sources = document.createElement('p');
+        sources.className = 'bw-search-sources';
+        sources.append('Sources: ');
+        j.sources.forEach((source, index) => {
+          if (index) sources.append(' · ');
+          const link = document.createElement('a');
+          link.href = source.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+          link.textContent = source.domain || source.title;
+          sources.append(link);
+        });
+        box.append(sources);
+      }
       window.dispatchEvent(new CustomEvent('batterywala:submission', {detail: {form: payload, prediction: j}}));
     } catch (err) {
       box.textContent = 'Unable to generate your quotation. ' + err.message + ' Please try again.';

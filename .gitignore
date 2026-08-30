@@ -10,6 +10,7 @@ __pycache__/
 # Local configuration and runtime data
 .env
 instance/
+output/
 *.db
 *.sqlite
 *.sqlite3

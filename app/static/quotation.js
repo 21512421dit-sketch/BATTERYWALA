@@ -9,10 +9,9 @@
   panel.innerHTML = `
     <h3 tabindex="-1">Your quotation is ready</h3>
     <p data-quote-summary></p><p data-quote-note></p>
-    <a class="btn primary" data-quote-download download>Download quotation PDF</a>
     <form data-quote-delivery>
       <h4>How should the quotation be sent to you?</h4>
-      <p>Choose email, mobile number (SMS with a PDF link), or both. You can also just download it above.</p>
+      <p>Choose email, mobile number, or both.</p>
       <div class="field"><label for="quoteChannel">Send via</label>
         <select id="quoteChannel" name="channel" required>
           <option value="">Choose a delivery option</option><option value="email">Email</option>
@@ -52,7 +51,6 @@
     panel.querySelector('h3').textContent = quote.status === 'priced' ? 'Your quotation is ready' : 'Quotation generated — price confirmation required';
     panel.querySelector('[data-quote-summary]').textContent = `${quote.number} · ${quote.message}`;
     panel.querySelector('[data-quote-note]').textContent = quote.note;
-    panel.querySelector('[data-quote-download]').href = quote.download_url;
     status.textContent = '';
     panel.hidden = false;
     panel.querySelector('h3').focus();
@@ -79,7 +77,7 @@
       if (!response.ok) throw new Error(result.error || 'Unable to send the quotation.');
       if (quote === activeQuote) status.textContent = result.deliveries.map(item => `${item.channel === 'email' ? 'Email' : 'Mobile'}: ${item.message}`).join(' ');
     } catch (error) {
-      if (quote === activeQuote) status.textContent = error.message + ' You can still download the PDF.';
+      if (quote === activeQuote) status.textContent = error.message;
     } finally {
       button.disabled = false;
     }
