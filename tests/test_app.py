@@ -27,7 +27,8 @@ def test_dynamic_form_schema_and_conditional_validation(tmp_path):
  assert all(key in schemas.json['new']['applications'] for key in
             ('three_wheeler','four_wheeler','commercial_vehicle','bus','truck','tractor','earth_mover'))
  vehicle_fields={field['name'] for field in schemas.json['new']['applications']['four_wheeler']['fields']}
- assert {'vehicle_make','vehicle_model','registration_year','city','pincode'} <= vehicle_fields
+ assert {'vehicle_make','vehicle_model','brand','city','pincode'} <= vehicle_fields
+ assert 'registration_year' not in vehicle_fields
  assert 'vehicle_details' not in vehicle_fields and 'vehicle_type' not in vehicle_fields
  form={'solution_type':'new','application_key':'inverter','name':'A','phone':'9876543210',
        'capacity_ah':'150','quantity':'2','city':'Pune','pincode':'411001','exchange_old_battery':'no'}
@@ -44,37 +45,20 @@ def test_dynamic_form_schema_and_conditional_validation(tmp_path):
  assert b'You can still download' not in quotation_script
 
 
-def test_google_search_uses_only_allowlisted_fitment_data(monkeypatch):
+def test_sqlite_fitment_lookup_and_dependent_options(tmp_path,monkeypatch):
  from app import services
- monkeypatch.setenv('SERPER_API_KEY','server-secret')
- monkeypatch.setenv('BATTERY_SEARCH_ALLOWED_DOMAINS','exidecare.com')
- requested=[]
- response={'organic':[
-  {'title':'EXIDE XLTZ4A battery for Honda Activa','snippet':'XLTZ4A is a 4 Ah two wheeler battery.','link':'https://www.exidecare.com/battery/xltz4a'},
-  {'title':'Buy EXIDE XLTZ4A','snippet':'Official XLTZ4A fitment information.','link':'https://exidecare.com/products/xltz4a'},
-  {'title':'EVIL99 cheap battery','snippet':'EVIL99 is the answer.','link':'https://example.invalid/battery'}]}
- class SearchResponse:
-  def __enter__(self):return self
-  def __exit__(self,*args):pass
-  def read(self):return json.dumps(response).encode()
- def search(request,timeout):
-  requested.append(request)
-  return SearchResponse()
- monkeypatch.setattr(services.urllib.request,'urlopen',search)
- form={'name':'Private Customer','phone':'9876543210','email':'private@example.com',
-       'city_pincode':'Private City 411001','company_address':'Secret address',
-       'application':'Two Wheeler','application_key':'two_wheeler','vehicle_type':'Scooter',
-       'vehicle_details':'Honda Activa 3G MH20 AB 1234 2017','fuel_type':'Petrol'}
- result=services.web_predict(form)
- request_body=json.loads(requested[0].data);query=request_body['q']
- assert requested[0].full_url=='https://google.serper.dev/search'
- assert requested[0].headers['X-api-key']=='server-secret'
- assert all(secret not in query for secret in
-            ('Private Customer','9876543210','private@example.com','Private City','Secret address','MH20'))
- assert all(value in query for value in ('Two Wheeler','Honda Activa 3G','2017','Petrol'))
- assert result['prediction']['model_no']=='XLTZ4A' and result['confidence']=='high'
- assert len(result['sources'])==2 and all('exidecare.com' in source['domain'] for source in result['sources'])
- assert set(result['shared_fields']) <= set(services.SEARCH_FIELDS)
+ app=create_app({'TESTING':True,'SQLALCHEMY_DATABASE_URI':'sqlite:///'+str(tmp_path/'fitments.db'),'SECRET_KEY':'test'})
+ monkeypatch.setattr(services.urllib.request,'urlopen',lambda *args,**kwargs:(_ for _ in ()).throw(AssertionError('network used')))
+ c=app.test_client()
+ makes=c.get('/api/fitment-options?field=makes&application=four_wheeler').json['options']
+ assert any(make.casefold()=='ashok leyland' for make in makes)
+ models=c.get('/api/fitment-options?field=models&application=four_wheeler&make=ASHOK%20LEYLAND').json['options']
+ assert 'Stile' in models
+ form={'application_key':'four_wheeler','vehicle_make':'Ashok Leyland','vehicle_model':'Stile','fuel_type':'Diesel'}
+ with app.app_context():result=services.predict(form)
+ assert result['confidence']=='high' and result['records']
+ assert all(record['source']=='SQLite fitment database' for record in result['records'])
+ assert {'Amaron','PowerZone'} <= {record['brand'] for record in result['records']}
 
 def test_catalog_publish_upserts_without_deleting_other_records(tmp_path, monkeypatch):
  from app import services
@@ -114,7 +98,7 @@ def test_quotation_generation_and_delivery(tmp_path, monkeypatch):
  record={'source_type':'retail','model_no':'35B20L','brand':'Exide','capacity_ah':35,'mrp':5096,
          'selling_price':'3500.51','exchange_value':500,'warranty':'24+12 months','dealer_price':100}
  monkeypatch.setattr(quotations,'load_data',lambda:{'records':[record]})
- monkeypatch.setattr(quotations,'web_predict',lambda form:{
+ monkeypatch.setattr(quotations,'predict',lambda form:{
   'prediction':record,'confidence':'high','needs_manual_review':False,'message':'Web match.',
   'sources':[{'title':'Official result','url':'https://www.exidecare.com/result','domain':'www.exidecare.com'}],
   'records':[record]})
@@ -211,7 +195,7 @@ def test_quotation_missing_prices_and_matching(tmp_path, monkeypatch):
  c=app.test_client()
  records=[]
  monkeypatch.setattr(quotations,'load_data',lambda:{'records':records})
- monkeypatch.setattr(quotations,'web_predict',lambda form:{
+ monkeypatch.setattr(quotations,'predict',lambda form:{
   'prediction':None,'confidence':'low','needs_manual_review':True,'message':'No web match.',
   'sources':[],'records':[]})
  payload={'name':'Customer <b>literal</b>','phone':'9876543210','battery_type':'Automotive',

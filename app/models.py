@@ -11,3 +11,12 @@ class Upload(db.Model):
  id=db.Column(db.Integer,primary_key=True); filename=db.Column(db.String(255)); sha256=db.Column(db.String(64)); record_count=db.Column(db.Integer); status=db.Column(db.String(30)); created_at=db.Column(db.DateTime,default=lambda:datetime.now(timezone.utc))
 class Delivery(db.Model):
  id=db.Column(db.Integer,primary_key=True); lead_id=db.Column(db.Integer); channel=db.Column(db.String(20)); target=db.Column(db.String(255)); status=db.Column(db.String(30)); detail=db.Column(db.Text); created_at=db.Column(db.DateTime,default=lambda:datetime.now(timezone.utc))
+class BatteryFitment(db.Model):
+ id=db.Column(db.Integer,primary_key=True)
+ application=db.Column(db.String(40),nullable=False,index=True)
+ vehicle_make=db.Column(db.String(120),nullable=False);make_key=db.Column(db.String(120),nullable=False,index=True)
+ vehicle_model=db.Column(db.String(240),nullable=False);model_key=db.Column(db.String(240),nullable=False,index=True)
+ fuel_type=db.Column(db.String(40));fuel_key=db.Column(db.String(40),nullable=False,default='')
+ brand=db.Column(db.String(80),nullable=False);brand_key=db.Column(db.String(80),nullable=False,index=True)
+ model_no=db.Column(db.String(100),nullable=False);capacity_ah=db.Column(db.Float)
+ __table_args__=(db.Index('ix_fitment_lookup','application','make_key','model_key','fuel_key'),)

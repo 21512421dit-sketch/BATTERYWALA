@@ -5,8 +5,8 @@ from flask_login import login_user,logout_user,login_required,current_user
 from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
 from . import db
-from .models import User,Recipient,Lead,Upload,Delivery
-from .services import predict,extract_document,publish,load_data,load_form_schemas,validate_form,notify
+from .models import User,Recipient,Lead,Upload,Delivery,BatteryFitment
+from .services import predict,extract_document,publish,load_data,load_form_schemas,validate_form,notify,norm,fitment_application
 bp=Blueprint('main',__name__)
 def csrf():
  import secrets
@@ -42,6 +42,26 @@ def api_predict():
 def pricing(): return jsonify(load_data())
 @bp.get('/api/form-schemas')
 def form_schemas(): return jsonify(load_form_schemas())
+@bp.get('/api/fitment-options')
+def fitment_options():
+ field=request.args.get('field','');application=fitment_application(request.args.get('application'))
+ if field not in ('makes','models','brands') or not application:return jsonify(error='Invalid fitment option request.'),400
+ if any(len(request.args.get(key,''))>240 for key in ('application','make','model','fuel')):return jsonify(error='Fitment option is too long.'),400
+ query=BatteryFitment.query.filter_by(application=application)
+ if field in ('models','brands'):
+  make=norm(request.args.get('make'))
+  if not make:return jsonify(options=[])
+  query=query.filter_by(make_key=make)
+ if field=='brands':
+  model=norm(request.args.get('model'))
+  if not model:return jsonify(options=[])
+  rows=query.filter_by(model_key=model).all();fuel=norm(request.args.get('fuel'))
+  if fuel:
+   rows=[row for row in rows if row.fuel_key in (fuel,'')]
+  values={row.brand for row in rows}
+ elif field=='models':values={row.vehicle_model for row in query.all()}
+ else:values={row.vehicle_make for row in query.all()}
+ return jsonify(options=sorted(values,key=str.casefold))
 @bp.route('/admin/login',methods=['GET','POST'])
 def login():
  if request.method=='POST':

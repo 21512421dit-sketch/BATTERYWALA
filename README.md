@@ -27,21 +27,30 @@ Email is sent when SMTP values are configured. SMS is sent by POSTing JSON to `S
 pytest -q
 ```
 
+## BatteryBhai fitment export
+
+`tools/scrape_batterybhai.py` exports the public vehicle finder mappings and matching
+battery cards to `output/batterybhai_predictions.json`. BatteryBhai's published terms
+prohibit wholesale copying without advance written permission, so obtain permission first.
+
+```bash
+python tools/scrape_batterybhai.py --self-test
+python tools/scrape_batterybhai.py --i-have-written-permission
+```
+
+The export resumes automatically. Use `--limit 5` for a small live check. Prices are
+location-specific; Delhi/New Delhi is the default and can be changed with `--state-id`
+and `--city-id`.
+
 ## Automatic quotations
 
-The public form performs a server-side Google web search using only the
-allowlisted battery-fitment fields in `app/services.py`. Customer name, phone,
-email, address and city/pincode are never included in the query, and registration
-numbers embedded in vehicle details are removed. Only results from
-`BATTERY_SEARCH_ALLOWED_DOMAINS` can be displayed or influence the recommendation.
-Configure `SERPAPI_API_KEY` to use Google's AI Overview results (closest to the
-Google Search experience), `SERPER_API_KEY` for direct low-cost Google results
-(when both are configured, Serper is used), or `GEMINI_API_KEY` as a fallback.
-Credentials are never sent to browser JavaScript. `GEMINI_MODEL` defaults to the
-low-cost `gemini-3.1-flash-lite`.
+The public form uses dependent application, make, model, fuel and optional brand
+selectors. It performs an exact lookup in the local SQLite `battery_fitment` table,
+which is seeded from `app/data/fitments.json` at startup. It does not call an AI or
+web-search service. City, PIN code, customer details, year and exchange details do
+not influence fitment.
 
-This web-search path does not read the uploaded battery catalogues. The application
-still stores a minimal lead and immutable quotation snapshot so its private PDF can
+The application stores a minimal lead and immutable quotation snapshot so its private PDF can
 be delivered. The public download control and download URL are not exposed. The
 customer may send the quotation by email, mobile number (SMS link), or both, and
 delivery starts only after clicking **Send quotation**.

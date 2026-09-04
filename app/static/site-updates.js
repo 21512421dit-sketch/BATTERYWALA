@@ -281,7 +281,7 @@
           }
           const wrapper = document.createElement('div'); wrapper.className = `field${field.type === 'textarea' ? ' bw-wide' : ''}`;
           const label = document.createElement('label'); label.textContent = `${field.label}${field.required ? ' *' : ''}`;
-          if (field.type === 'select') {
+          if (field.type === 'select' || field.type.startsWith('fitment_')) {
             control = document.createElement('select'); control.append(option('', 'Select'));
             (field.options || []).forEach(item => control.append(option(typeof item === 'string' ? item : item.value, typeof item === 'string' ? item : item.label)));
           } else if (field.type === 'textarea') control = document.createElement('textarea');
@@ -294,6 +294,38 @@
           if (field.show_when) wrapper.dataset.showWhen = JSON.stringify(field.show_when);
           wrapper.append(label, control); fieldsHost.append(wrapper);
         });
+        const make = fieldsHost.querySelector('[name="vehicle_make"], [name="generator_make"]');
+        const model = fieldsHost.querySelector('[name="vehicle_model"], [name="generator_model"]');
+        const brand = fieldsHost.querySelector('[name="brand"]');
+        const fuel = fieldsHost.querySelector('[name="fuel_type"]');
+        const loadOptions = async (field, control, params, placeholder) => {
+          if (!control) return;
+          control.disabled = true; control.replaceChildren(option('', 'Loading...'));
+          try {
+            const query = new URLSearchParams({field, application: applicationSelect.value, ...params});
+            const response = await fetch(`/api/fitment-options?${query}`, {headers: {'ngrok-skip-browser-warning': '1'}});
+            if (!response.ok) throw new Error('Unable to load battery fitments');
+            const data = await response.json();
+            control.replaceChildren(option('', placeholder));
+            data.options.forEach(value => control.append(option(value, value)));
+          } catch (error) {
+            control.replaceChildren(option('', 'Options unavailable')); note.textContent = error.message;
+          }
+          control.disabled = false;
+        };
+        if (make && model) {
+          model.disabled = true; if (brand) brand.disabled = true;
+          loadOptions('makes', make, {}, 'Select make');
+          make.addEventListener('change', async () => {
+            model.replaceChildren(option('', 'Select model')); model.disabled = !make.value;
+            if (brand) { brand.replaceChildren(option('', 'Any verified brand')); brand.disabled = true; }
+            if (make.value) await loadOptions('models', model, {make: make.value}, 'Select model');
+          });
+          const loadBrands = () => loadOptions('brands', brand,
+            {make: make.value, model: model.value, fuel: fuel?.value || ''}, 'Any verified brand');
+          model.addEventListener('change', () => model.value ? loadBrands() : undefined);
+          fuel?.addEventListener('change', () => model.value ? loadBrands() : undefined);
+        }
         const updateConditions = () => fieldsHost.querySelectorAll('[data-show-when]').forEach(wrapper => {
           const conditions = JSON.parse(wrapper.dataset.showWhen);
           const visible = Object.entries(conditions).every(([name, value]) => requestForm.elements[name]?.value === String(value));

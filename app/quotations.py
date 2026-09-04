@@ -19,7 +19,7 @@ from flask import Blueprint, abort, current_app, jsonify, request, url_for
 
 from . import db
 from .models import Delivery, Lead, Recipient
-from .services import SearchUnavailable, load_data, norm, notify, validate_form, web_predict
+from .services import load_data, norm, notify, predict, validate_form
 
 bp = Blueprint('quotations', __name__)
 NOTES = {
@@ -50,10 +50,11 @@ def quotation_options(form, prediction=None, records=None):
         if record.get('source_type') == 'scrap' or not record.get('model_no'):
             continue
         model_match = form.get('model_no') and norm(form['model_no']) == norm(record['model_no'])
-        vehicle_match = (form.get('car_model') and record.get('vehicle_model')
-                         and norm(form['car_model']) == norm(record['vehicle_model']))
-        web_match = record.get('source_type') == 'web'
-        if not (model_match or vehicle_match or web_match):
+        requested_vehicle = form.get('vehicle_model') or form.get('car_model')
+        vehicle_match = (requested_vehicle and record.get('vehicle_model')
+                         and norm(requested_vehicle) == norm(record['vehicle_model']))
+        fitment_match = record.get('source_type') == 'official_fitment'
+        if not (model_match or vehicle_match or fitment_match):
             continue
         brand = norm(form.get('brand'))
         if brand and brand != 'any verified brand' and brand != norm(record.get('brand')):
@@ -96,7 +97,8 @@ def quotation_options(form, prediction=None, records=None):
 
 def quotation_sections(form, lead):
     model = (form.get('vehicle_details') or form.get('generator_details') or
-             ' '.join(filter(None, [form.get('vehicle_brand'), form.get('car_model')])))
+             ' '.join(filter(None, [form.get('vehicle_make') or form.get('generator_make') or form.get('vehicle_brand'),
+                                    form.get('vehicle_model') or form.get('generator_model') or form.get('car_model')])))
     application = form.get('application') or form.get('battery_type') or '-'
     vehicle_type = {'Passenger vehicle': 'FOUR WHEELER', 'Two wheeler': 'TWO WHEELER',
                     'Two Wheeler': 'TWO WHEELER', 'Commercial vehicle': 'COMMERCIAL VEHICLE'}.get(
@@ -292,8 +294,7 @@ def create_quotation():
     # ponytail: per-process rate limit; move to the reverse proxy when multiple workers are deployed.
     if len(attempts)>=30:return jsonify(error='Too many battery searches. Please try again later.'),429
     attempts.append(now)
-    try:result=web_predict(form)
-    except SearchUnavailable as error:return jsonify(error=str(error)),503
+    result=predict(form)
     options = quotation_options(form, result, records=result.get('records',[]))
     provisional = any(item.get('provisional') for item in options)
     pending = not options or provisional or any(item['price'] is None for item in options)

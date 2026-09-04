@@ -1,4 +1,4 @@
-import os
+import json,os,re
 from pathlib import Path
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -20,7 +20,7 @@ def create_app(test_config=None):
  from .quotations import bp as quotations_bp
  app.register_blueprint(quotations_bp)
  with app.app_context():
-  db.create_all(); ensure_admin(app)
+  db.create_all(); ensure_admin(app); ensure_fitments()
  return app
 
 def ensure_admin(app):
@@ -29,3 +29,22 @@ def ensure_admin(app):
  email=os.getenv('ADMIN_EMAIL','admin@batterywala.local').lower()
  if not User.query.filter_by(email=email).first():
   db.session.add(User(email=email,password_hash=generate_password_hash(os.getenv('ADMIN_PASSWORD','ChangeMe123!')),is_admin=True)); db.session.commit()
+
+def ensure_fitments():
+ from .models import BatteryFitment
+ path=Path(__file__).resolve().parent/'data'/'fitments.json'
+ records=json.loads(path.read_text(encoding='utf-8')).get('fitments',[]) if path.exists() else []
+ expected=sum(len(item.get('batteries',[])) for item in records)
+ # ponytail: count-only refresh keeps startup dependency-free; add a content hash if same-sized catalog updates become common.
+ if BatteryFitment.query.count()==expected:return
+ BatteryFitment.query.delete()
+ def key(value):return re.sub(r'[^a-z0-9]+',' ',str(value or '').lower()).strip()
+ rows=[]
+ for item in records:
+  for battery in item.get('batteries',[]):
+   rows.append({'application':item['application'],'vehicle_make':item['vehicle_make'],'make_key':key(item['vehicle_make']),
+    'vehicle_model':item['vehicle_model'],'model_key':key(item['vehicle_model']),'fuel_type':item.get('fuel_type'),
+    'fuel_key':key(item.get('fuel_type')),'brand':battery['brand'],'brand_key':key(battery['brand']),
+    'model_no':battery['model_no'],'capacity_ah':battery.get('capacity_ah')})
+ if rows:db.session.bulk_insert_mappings(BatteryFitment,rows)
+ db.session.commit()
