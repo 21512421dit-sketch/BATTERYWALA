@@ -1,4 +1,4 @@
-import re,json,os,smtplib,urllib.request
+import re,json,os,smtplib,urllib.error,urllib.parse,urllib.request
 from pathlib import Path
 from email.message import EmailMessage
 from datetime import datetime,timezone
@@ -43,41 +43,71 @@ def validate_form(form):
 def fitment_application(value):
  key=norm(value).replace(' ','_')
  return {'bus':'commercial_vehicle','truck':'commercial_vehicle','car_suv_muv':'four_wheeler'}.get(key,key)
+class SearchUnavailable(RuntimeError): pass
+SEARCH_FIELDS=('application','application_key','vehicle_type','vehicle_make','vehicle_model','registration_year',
+               'generator_make','generator_model','generator_capacity_kw','generator_year','fuel_type',
+               'capacity_ah','voltage','new_battery_height','new_battery_width','new_battery_depth','model_no',
+               'old_capacity_ah','old_voltage','vehicle_details','generator_details','new_dimensions')
+DEFAULT_SEARCH_DOMAINS=('exidecare.com','amaron.com','livguard.com','luminousindia.com','sfsonicpower.com')
+def battery_search_terms(form):
+ values=[]
+ for name in SEARCH_FIELDS:
+  value=str(form.get(name,'')).strip()
+  if not value:continue
+  value=re.sub(r'\b[A-Z]{2}[- ]?\d{1,2}[- ]?[A-Z]{1,3}[- ]?\d{1,4}\b',' ',value,flags=re.I)
+  value=re.sub(r'[^A-Za-z0-9 ./+()\-]',' ',value)
+  value=re.sub(r'\s+',' ',value).strip()[:80]
+  if value:values.append(value)
+ return values
+def fitment_label(form):
+ values=(form.get('vehicle_make'),form.get('vehicle_model'),form.get('registration_year'),
+         form.get('generator_make'),form.get('generator_model'),form.get('generator_year'))
+ return ' '.join(str(value).strip() for value in values if value) or form.get('vehicle_details') or form.get('generator_details')
+def serpbase_predict(form,key):
+ domains=tuple(x.strip().lower() for x in os.getenv('BATTERY_SEARCH_ALLOWED_DOMAINS',','.join(DEFAULT_SEARCH_DOMAINS)).split(',') if x.strip())
+ terms=battery_search_terms(form)
+ if not terms:return {'prediction':None,'confidence':'low','needs_manual_review':True,'message':'No battery-fitment details were available to search.','sources':[],'records':[]}
+ query=('compatible battery model capacity Ah '+' '.join(terms)+' ('+' OR '.join('site:'+d for d in domains)+')')[:500]
+ body=json.dumps({'q':query,'hl':'en','gl':'in','device':'default'}).encode()
+ endpoint=os.getenv('SERPBASE_BASE_URL','https://api.serpbase.dev').rstrip('/')+'/google/search'
+ try:
+  req=urllib.request.Request(endpoint,data=body,headers={
+   'Content-Type':'application/json','Accept':'application/json','X-API-Key':key,
+   'User-Agent':'BatteryWala/1.0','X-SerpBase-Source':'batterywala'})
+  with urllib.request.urlopen(req,timeout=int(os.getenv('SERPBASE_TIMEOUT','20'))) as response:payload=json.loads(response.read())
+ except urllib.error.HTTPError as error:
+  if error.code==401:raise SearchUnavailable('Serpbase rejected the API key. Check SERPBASE_API_KEY.') from error
+  if error.code==403:raise SearchUnavailable('Serpbase blocked the search request (HTTP 403). Check the key permissions or Serpbase account access.') from error
+  raise SearchUnavailable('Google search is temporarily unavailable.') from error
+ except Exception as error:raise SearchUnavailable('Google search is temporarily unavailable.') from error
+ if payload.get('status') not in (None,0):raise SearchUnavailable('Google search could not complete the request.')
+ def allowed(link):
+  host=(urllib.parse.urlsplit(link).hostname or '').lower()
+  return any(host==domain or host.endswith('.'+domain) for domain in domains)
+ items=[item for item in payload.get('organic',[]) if allowed(item.get('link') or item.get('url',''))]
+ sources=[{'title':re.sub(r'\s+',' ',str(item.get('title',''))).strip()[:160],
+           'url':item.get('link') or item.get('url'),'domain':urllib.parse.urlsplit(item.get('link') or item.get('url')).hostname}
+          for item in items[:5]]
+ excluded={token.upper() for value in terms for token in re.findall(r'[A-Za-z0-9./-]+',value)};candidates={};evidence={}
+ for item in items:
+  text=' '.join((str(item.get('title','')),str(item.get('snippet','')))).upper()
+  for model in re.findall(r'\b(?=[A-Z0-9./-]{3,24}\b)(?=[A-Z0-9./-]*[A-Z])(?=[A-Z0-9./-]*\d)[A-Z0-9][A-Z0-9./-]+\b',text):
+   if model in excluded or re.fullmatch(r'\d+(?:\.\d+)?(?:V|AH|KW|CC|F|M|Y)',model):continue
+   candidates[model]=candidates.get(model,0)+1;evidence.setdefault(model,item)
+ if not candidates:return {'prediction':None,'confidence':'low','needs_manual_review':True,'message':'Google returned trusted sources, but no battery model could be extracted safely.','sources':sources,'records':[]}
+ model,count=max(candidates.items(),key=lambda pair:pair[1]);item=evidence[model];text=' '.join((str(item.get('title','')),str(item.get('snippet',''))))
+ brand=next((label for token,label in (('EXIDE','EXIDE'),('AMARON','AMARON'),('LIVGUARD','LIVGUARD'),('LUMINOUS','LUMINOUS'),('SF SONIC','SF SONIC')) if token in text.upper()),None)
+ capacity=re.search(r'\b(\d+(?:\.\d+)?)\s*AH\b',text,re.I)
+ record={'source_type':'web','model_no':model,'brand':brand,'capacity_ah':float(capacity.group(1)) if capacity else None,
+         'vehicle_model':fitment_label(form),'source':sources[0]['domain'],'source_url':sources[0]['url']}
+ confidence='high' if count>1 else 'medium'
+ return {'prediction':record,'confidence':confidence,'needs_manual_review':confidence!='high',
+         'message':'Google recommendation only. Confirm OEM fitment, dimensions, terminal orientation and warranty before sale.',
+         'sources':sources,'records':[record],'shared_fields':[name for name in SEARCH_FIELDS if form.get(name)]}
 def predict(form):
- from .models import BatteryFitment
- application=fitment_application(form.get('application_key') or form.get('application'))
- make=norm(form.get('vehicle_make') or form.get('generator_make'))
- model=norm(form.get('vehicle_model') or form.get('generator_model') or form.get('car_model'))
- fuel=norm(form.get('fuel_type'));brand=norm(form.get('brand'))
- if application and make and model:
-  rows=BatteryFitment.query.filter_by(application=application,make_key=make,model_key=model).all()
-  if fuel:
-   rows=[row for row in rows if row.fuel_key in (fuel,'')]
-  if brand and brand!='any verified brand':rows=[row for row in rows if row.brand_key==brand]
-  prices={}
-  for item in load_data().get('records',[]):
-   key=(norm(item.get('brand')),norm(item.get('model_no')))
-   if all(key):prices.setdefault(key,item)
-  records=[]
-  for row in sorted(rows,key=lambda item:(item.brand_key,norm(item.model_no))):
-   record={'source_type':'official_fitment','source':'SQLite fitment database','application':row.application,
-    'vehicle_make':row.vehicle_make,'vehicle_model':row.vehicle_model,'fuel_type':row.fuel_type,
-    'brand':row.brand,'model_no':row.model_no,'capacity_ah':row.capacity_ah}
-   retail=prices.get((row.brand_key,norm(row.model_no)),{})
-   record.update({key:retail.get(key) for key in ('mrp','selling_price','discounted_price','price_with_exchange','exchange_value','warranty','warranty_months') if retail.get(key) is not None})
-   records.append(record)
-  if records:return {'prediction':records[0],'confidence':'high','needs_manual_review':False,
-   'message':f'{len(records)} verified battery fitment option(s) found.','sources':[],'records':records}
- # Non-vehicle batteries still use exact local model/capacity fields, never a web or AI guess.
- wanted=norm(form.get('model_no'));capacity=num(form.get('capacity_ah'))
- records=[item for item in load_data().get('records',[]) if item.get('source_type')!='scrap'
-          and (not wanted or norm(item.get('model_no'))==wanted)
-          and (capacity is None or num(item.get('capacity_ah'))==capacity)
-          and (not application or fitment_application(item.get('application'))==application)]
- if records:return {'prediction':records[0],'confidence':'high','needs_manual_review':False,
-  'message':f'{len(records)} exact catalog option(s) found.','sources':[],'records':records}
- return {'prediction':None,'confidence':'low','needs_manual_review':True,
-  'message':'No exact verified fitment was found. Check the selected make, model and fuel.','sources':[],'records':[]}
+ key=os.getenv('SERPBASE_API_KEY')
+ if not key:raise SearchUnavailable('Google search is not configured. Add SERPBASE_API_KEY to .env and restart the server.')
+ return serpbase_predict(form,key)
 
 def _brand(text):
  upper=text.upper()

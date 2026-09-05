@@ -6,7 +6,7 @@ from werkzeug.security import check_password_hash
 from werkzeug.utils import secure_filename
 from . import db
 from .models import User,Recipient,Lead,Upload,Delivery,BatteryFitment
-from .services import predict,extract_document,publish,load_data,load_form_schemas,validate_form,notify,norm,fitment_application
+from .services import SearchUnavailable,predict,extract_document,publish,load_data,load_form_schemas,validate_form,notify,norm,fitment_application
 bp=Blueprint('main',__name__)
 def csrf():
  import secrets
@@ -37,11 +37,20 @@ def api_predict():
  form['vehicle_model']=form.get('vehicle_model') or form.get('car_model') or form.get('model_no') or form.get('vehicle_brand') or form.get('battery_type','')
  missing=validate_form(form) if form.get('application_key') else [x for x in ('name','phone','application') if not str(form.get(x,'')).strip()]
  if missing:return jsonify({'error':'Missing required fields','fields':missing}),400
- result=predict(form); lead=Lead(name=form.get('name'),email=form.get('email'),phone=form.get('phone'),form_json=json.dumps(form),result_json=json.dumps(result));db.session.add(lead);db.session.commit();notify(lead,form,result,Recipient.query.all());return jsonify(result)
+ try:result=predict(form)
+ except SearchUnavailable as error:return jsonify({'error':str(error)}),503
+ lead=Lead(name=form.get('name'),email=form.get('email'),phone=form.get('phone'),form_json=json.dumps(form),result_json=json.dumps(result));db.session.add(lead);db.session.commit();notify(lead,form,result,Recipient.query.all());return jsonify(result)
 @bp.get('/api/pricing')
 def pricing(): return jsonify(load_data())
 @bp.get('/api/form-schemas')
 def form_schemas(): return jsonify(load_form_schemas())
+def display_options(rows,value_field,key_field):
+ grouped={}
+ for row in rows:
+  value=getattr(row,value_field);key=getattr(row,key_field)
+  current=grouped.get(key)
+  if current is None or (current.isupper() and not value.isupper()):grouped[key]=value
+ return sorted(grouped.values(),key=str.casefold)
 @bp.get('/api/fitment-options')
 def fitment_options():
  field=request.args.get('field','');application=fitment_application(request.args.get('application'))
@@ -58,10 +67,10 @@ def fitment_options():
   rows=query.filter_by(model_key=model).all();fuel=norm(request.args.get('fuel'))
   if fuel:
    rows=[row for row in rows if row.fuel_key in (fuel,'')]
-  values={row.brand for row in rows}
- elif field=='models':values={row.vehicle_model for row in query.all()}
- else:values={row.vehicle_make for row in query.all()}
- return jsonify(options=sorted(values,key=str.casefold))
+  values=display_options(rows,'brand','brand_key')
+ elif field=='models':values=display_options(query.all(),'vehicle_model','model_key')
+ else:values=display_options(query.all(),'vehicle_make','make_key')
+ return jsonify(options=values)
 @bp.route('/admin/login',methods=['GET','POST'])
 def login():
  if request.method=='POST':

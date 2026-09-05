@@ -14,8 +14,8 @@ def test_health_and_validation(tmp_path):
 def test_prototype_form_submission(tmp_path):
  app=create_app({'TESTING':True,'SQLALCHEMY_DATABASE_URI':'sqlite:///'+str(tmp_path/'prototype.db'),'SECRET_KEY':'test'})
  c=app.test_client(); r=c.post('/api/predict',json={'name':'Test User','phone':'9876543210','pincode':'110001','battery_type':'Automotive','application':'Passenger vehicle'})
- assert r.status_code==200
- assert 'prediction' in r.get_json()
+ assert r.status_code==503
+ assert 'SERPBASE_API_KEY' in r.get_json()['error']
 
 def test_dynamic_form_schema_and_conditional_validation(tmp_path):
  from app.services import validate_form
@@ -28,6 +28,9 @@ def test_dynamic_form_schema_and_conditional_validation(tmp_path):
             ('three_wheeler','four_wheeler','commercial_vehicle','bus','truck','tractor','earth_mover'))
  vehicle_fields={field['name'] for field in schemas.json['new']['applications']['four_wheeler']['fields']}
  assert {'vehicle_make','vehicle_model','brand','city','pincode'} <= vehicle_fields
+ assert all(field['type'] == 'text' for field in schemas.json['new']['applications']['four_wheeler']['fields'] if field['name'] in {'vehicle_make','vehicle_model','brand'})
+ tubular_fields={field['name']:field for field in schemas.json['restoration']['applications']['inverter_tubular']['fields']}
+ assert tubular_fields['old_voltage']=={'name':'old_voltage','type':'hidden','value':'12'}
  assert 'registration_year' not in vehicle_fields
  assert 'vehicle_details' not in vehicle_fields and 'vehicle_type' not in vehicle_fields
  form={'solution_type':'new','application_key':'inverter','name':'A','phone':'9876543210',
@@ -35,7 +38,7 @@ def test_dynamic_form_schema_and_conditional_validation(tmp_path):
  assert validate_form(form)==[]
  assert validate_form(form|{'exchange_old_battery':'yes'})==['old_capacity_ah','old_quantity']
  script=c.get('/static/site-updates.js').data
- assert b'/api/form-schemas' in script and b'data-dynamic-fields' in script
+ assert b'/api/form-schemas' in script and b'data-dynamic-fields' in script and b'/api/fitment-options' not in script
  assert b"predictionPanel.replaceChildren()" in script and b"predictionPanel.style.display = 'none'" in script
  page=c.get('/').data
  assert b'note.textContent = j.message' not in page and b'box.append(sources)' not in page
@@ -45,20 +48,31 @@ def test_dynamic_form_schema_and_conditional_validation(tmp_path):
  assert b'You can still download' not in quotation_script
 
 
-def test_sqlite_fitment_lookup_and_dependent_options(tmp_path,monkeypatch):
+def test_serpbase_google_search_uses_only_allowlisted_fitment_data(tmp_path,monkeypatch):
  from app import services
- app=create_app({'TESTING':True,'SQLALCHEMY_DATABASE_URI':'sqlite:///'+str(tmp_path/'fitments.db'),'SECRET_KEY':'test'})
- monkeypatch.setattr(services.urllib.request,'urlopen',lambda *args,**kwargs:(_ for _ in ()).throw(AssertionError('network used')))
- c=app.test_client()
- makes=c.get('/api/fitment-options?field=makes&application=four_wheeler').json['options']
- assert any(make.casefold()=='ashok leyland' for make in makes)
- models=c.get('/api/fitment-options?field=models&application=four_wheeler&make=ASHOK%20LEYLAND').json['options']
- assert 'Stile' in models
- form={'application_key':'four_wheeler','vehicle_make':'Ashok Leyland','vehicle_model':'Stile','fuel_type':'Diesel'}
- with app.app_context():result=services.predict(form)
- assert result['confidence']=='high' and result['records']
- assert all(record['source']=='SQLite fitment database' for record in result['records'])
- assert {'Amaron','PowerZone'} <= {record['brand'] for record in result['records']}
+ monkeypatch.setenv('SERPBASE_API_KEY','server-secret')
+ monkeypatch.setenv('BATTERY_SEARCH_ALLOWED_DOMAINS','exidecare.com')
+ requested=[]
+ response={'status':0,'organic':[
+  {'title':'EXIDE XLTZ4A battery for Honda Activa','snippet':'XLTZ4A is a 4 Ah two wheeler battery.','link':'https://www.exidecare.com/battery/xltz4a'},
+  {'title':'Buy EXIDE XLTZ4A','snippet':'Official XLTZ4A fitment information.','link':'https://exidecare.com/products/xltz4a'},
+  {'title':'EVIL99 cheap battery','snippet':'EVIL99 is the answer.','link':'https://example.invalid/battery'}]}
+ class SearchResponse:
+  def __enter__(self):return self
+  def __exit__(self,*args):pass
+  def read(self):return json.dumps(response).encode()
+ def search(request,timeout):requested.append(request);return SearchResponse()
+ monkeypatch.setattr(services.urllib.request,'urlopen',search)
+ form={'name':'Private Customer','phone':'9876543210','email':'private@example.com','city':'Private City','pincode':'411001',
+       'application':'Two Wheeler','application_key':'two_wheeler','vehicle_make':'Honda','vehicle_model':'Activa 3G','fuel_type':'Petrol'}
+ result=services.predict(form); request_body=json.loads(requested[0].data);query=request_body['q']
+ assert requested[0].full_url=='https://api.serpbase.dev/google/search'
+ assert requested[0].headers['X-api-key']=='server-secret'
+ assert all(secret not in query for secret in ('Private Customer','9876543210','private@example.com','Private City','411001'))
+ assert all(value in query for value in ('Two Wheeler','Honda','Activa 3G','Petrol'))
+ assert result['prediction']['model_no']=='XLTZ4A' and result['confidence']=='high'
+ assert len(result['sources'])==2 and all('exidecare.com' in source['domain'] for source in result['sources'])
+ assert set(result['shared_fields']) <= set(services.SEARCH_FIELDS)
 
 def test_catalog_publish_upserts_without_deleting_other_records(tmp_path, monkeypatch):
  from app import services

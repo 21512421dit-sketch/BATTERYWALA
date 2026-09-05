@@ -19,7 +19,7 @@ from flask import Blueprint, abort, current_app, jsonify, request, url_for
 
 from . import db
 from .models import Delivery, Lead, Recipient
-from .services import load_data, norm, notify, predict, validate_form
+from .services import SearchUnavailable, load_data, norm, notify, predict, validate_form
 
 bp = Blueprint('quotations', __name__)
 NOTES = {
@@ -294,7 +294,10 @@ def create_quotation():
     # ponytail: per-process rate limit; move to the reverse proxy when multiple workers are deployed.
     if len(attempts)>=30:return jsonify(error='Too many battery searches. Please try again later.'),429
     attempts.append(now)
-    result=predict(form)
+    try:
+        result = predict(form)
+    except SearchUnavailable as error:
+        return jsonify(error=str(error)), 503
     options = quotation_options(form, result, records=result.get('records',[]))
     provisional = any(item.get('provisional') for item in options)
     pending = not options or provisional or any(item['price'] is None for item in options)

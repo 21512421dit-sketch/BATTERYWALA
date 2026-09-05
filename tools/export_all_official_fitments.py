@@ -250,6 +250,7 @@ def price_list(pdf_path, brand, source_url):
 def prediction_catalog(payload):
     application_keys = {
         "passengers": "four_wheeler", "four-wheelers": "four_wheeler", "car-and-suv": "four_wheeler",
+        "car-suv-muv": "four_wheeler",
         "two-wheelers": "two_wheeler", "two-wheeler": "two_wheeler",
         "three-wheelers": "three_wheeler", "three-wheeler": "three_wheeler",
         "commercial": "commercial_vehicle", "commercial-vehicles": "commercial_vehicle",

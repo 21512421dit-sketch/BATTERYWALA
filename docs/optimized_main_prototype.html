@@ -295,7 +295,7 @@ html{scroll-padding-top:104px}.section[id],main section[id]{scroll-margin-top:10
 <div class="field bw-optional-field" hidden="hidden"><label>Brand preference</label><select name="brand"><option>Any verified brand</option><option>Exide</option><option>Amaron</option></select></div><div class="field"><label>Request type</label><select name="request_type"><option>Battery recommendation</option><option>Price and fitment</option><option>Emergency support</option><option>Restoration assessment</option></select></div>
 <div class="field"><label for="quoteExchange">Exchange old battery? *</label><select id="quoteExchange" name="exchange_old_battery" required><option value="">Select</option><option value="yes">With old battery exchange</option><option value="no">Without old battery exchange</option></select></div>
 <div class="field bw-wide bw-optional-field" hidden="hidden"><label>Clarify your doubts</label><textarea name="doubts" placeholder="Add questions, symptoms or installation constraints"></textarea></div></div><button aria-expanded="false" class="bw-details-toggle" id="bwDetailsToggle" type="button">+ Add vehicle, battery or issue details</button>
-<div class="bw-prediction" id="bwPrediction"></div><div class="formNav"><button class="btn primary" type="submit">Generate quotation</button><button class="btn light" type="reset">Reset</button></div></form></div></div></div></section>
+<div class="bw-prediction" id="bwPrediction"></div><div class="formNav"><button class="btn primary" type="submit">Find compatible battery</button><button class="btn light" type="reset">Reset</button></div></form></div></div></div></section>
 <div hidden="hidden" id="bwLegacyCompatibility"><form id="contactForm"><input name="name"/><input name="phone"/><div id="formMsg"></div><button id="contactWhatsApp" type="button"></button></form></div><script id="bw2026-script">
 (()=>{
   document.querySelectorAll('a').forEach(a=>{if(a.textContent.trim().toLowerCase().includes('find a solution'))a.href='#battery-request'});
@@ -311,17 +311,17 @@ html{scroll-padding-top:104px}.section[id],main section[id]{scroll-margin-top:10
     const controls = [...form.elements].filter(control => !control.disabled);
     controls.forEach(control => control.disabled = true);
     box.style.display = 'block';
-    box.textContent = 'Generating your quotation from verified pricing records…';
+    box.textContent = 'Checking compatible batteries from verified sources…';
     try {
       const r = await fetch('/api/quotations', {method: 'POST', headers: {'Content-Type': 'application/json', 'ngrok-skip-browser-warning': '1'}, body: JSON.stringify(payload)});
-      const j = await r.json();
+      const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || 'Quotation generation failed');
       const p = j.prediction;
       box.replaceChildren();
       const title = document.createElement('h4');
       title.textContent = p ? `Recommended: ${p.brand || 'Verified brand'} ${p.model_no || 'model pending review'}` : 'Manual review required';
       const detail = document.createElement('p');
-      detail.textContent = p ? `Confidence: ${j.confidence}${p.capacity_ah ? ' · ' + p.capacity_ah + 'Ah' : ''}${p.mrp ? ' · MRP Rs. ' + p.mrp : ''}` : j.message;
+      detail.textContent = p ? [p.capacity_ah ? p.capacity_ah + 'Ah' : '', p.mrp ? 'MRP Rs. ' + p.mrp : ''].filter(Boolean).join(' · ') : j.message;
       box.append(title, detail);
       window.dispatchEvent(new CustomEvent('batterywala:submission', {detail: {form: payload, prediction: j}}));
     } catch (err) {

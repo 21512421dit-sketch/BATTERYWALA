@@ -35,8 +35,10 @@ def ensure_fitments():
  path=Path(__file__).resolve().parent/'data'/'fitments.json'
  records=json.loads(path.read_text(encoding='utf-8')).get('fitments',[]) if path.exists() else []
  expected=sum(len(item.get('batteries',[])) for item in records)
- # ponytail: count-only refresh keeps startup dependency-free; add a content hash if same-sized catalog updates become common.
- if BatteryFitment.query.count()==expected:return
+ expected_applications={item['application'] for item in records}
+ current_applications={row[0] for row in db.session.query(BatteryFitment.application).distinct()}
+ # ponytail: count plus category set catches the current migration without a metadata table.
+ if BatteryFitment.query.count()==expected and current_applications==expected_applications:return
  BatteryFitment.query.delete()
  def key(value):return re.sub(r'[^a-z0-9]+',' ',str(value or '').lower()).strip()
  rows=[]

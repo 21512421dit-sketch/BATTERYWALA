@@ -27,28 +27,17 @@ Email is sent when SMTP values are configured. SMS is sent by POSTing JSON to `S
 pytest -q
 ```
 
-## BatteryBhai fitment export
-
-`tools/scrape_batterybhai.py` exports the public vehicle finder mappings and matching
-battery cards to `output/batterybhai_predictions.json`. BatteryBhai's published terms
-prohibit wholesale copying without advance written permission, so obtain permission first.
-
-```bash
-python tools/scrape_batterybhai.py --self-test
-python tools/scrape_batterybhai.py --i-have-written-permission
-```
-
-The export resumes automatically. Use `--limit 5` for a small live check. Prices are
-location-specific; Delhi/New Delhi is the default and can be changed with `--state-id`
-and `--city-id`.
-
 ## Automatic quotations
 
-The public form uses dependent application, make, model, fuel and optional brand
-selectors. It performs an exact lookup in the local SQLite `battery_fitment` table,
-which is seeded from `app/data/fitments.json` at startup. It does not call an AI or
-web-search service. City, PIN code, customer details, year and exchange details do
-not influence fitment.
+The public form performs a server-side Google search through Serpbase. Add your API
+key to `.env` as `SERPBASE_API_KEY`, then restart the server. The key is never sent to
+browser JavaScript. The search uses only battery-fitment fields; customer name, phone,
+email, address, city, and PIN code are not included. Only domains in
+`BATTERY_SEARCH_ALLOWED_DOMAINS` can influence or appear in a recommendation.
+
+The former SQLite fitment lookup is not used for recommendations or form options.
+Vehicle make, model, and preferred brand are free-text fields so they can be searched
+directly through Google.
 
 The application stores a minimal lead and immutable quotation snapshot so its private PDF can
 be delivered. The public download control and download URL are not exposed. The
